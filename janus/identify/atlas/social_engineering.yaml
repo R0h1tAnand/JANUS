@@ -1,0 +1,480 @@
+# Authorised Push Payment (APP) and social-engineering vectors.
+# The defining property of this family: the victim authenticates and authorises the payment
+# themselves, so every device, credential and behavioural-biometric signal looks legitimate.
+# GenAI attacks this family hardest because the bottleneck was always human persuasion at scale.
+---
+id: VY-SOC-001
+name: Cloned-voice relative distress call
+summary: >-
+  Attacker scrapes 20-30 seconds of a family member's voice from Instagram reels or a WhatsApp
+  status, clones it with an off-the-shelf TTS model, and calls an older relative claiming an
+  accident, arrest or medical emergency requiring an immediate UPI transfer to a "hospital
+  clerk" or "police contact" account.
+rails: [upi_p2p, imps]
+genai_enablers: [voice_clone, llm_dialogue, localisation]
+surfaces: [voice_call, chat_app]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Harvest target family graph and voice samples from public social media.
+    genai_used: false
+  - phase: resource_dev
+    description: Fine-tune or few-shot a voice clone from the harvested sample; script the pretext in the victim's regional language.
+    genai_used: true
+  - phase: pretext
+    description: Place the call during a high-stress window (late evening, exam season) claiming an emergency.
+    genai_used: true
+  - phase: trust_build
+    description: Sustain a live conversation using an LLM to answer family-specific probing questions.
+    genai_used: true
+  - phase: instrument
+    description: Victim initiates one or more UPI transfers to a first-time beneficiary under time pressure.
+    genai_used: false
+  - phase: launder
+    description: Mule fans the funds out within minutes across several downstream accounts.
+    genai_used: false
+observables:
+  - first_time_beneficiary
+  - inbound_call_precedes_payment
+  - amount_escalation_within_session
+  - out_of_pattern_hour
+  - beneficiary_fan_in_from_unrelated_payers
+  - payment_velocity_spike_vs_personal_baseline
+mitigations:
+  - Cooling-off window on first payment to a new beneficiary above a value threshold
+  - In-app scam interstitial triggered by concurrent call activity
+  - Confirmation-of-payee name matching before debit
+victim_profile:
+  age_bands: ["55-70", "70+"]
+  digital_tenure: low
+  segment: retail
+  notes: Selection favours victims with recent large inbound credits (pension, maturity payouts).
+status: emerging
+severity: 4
+scalability: 5
+detectability: 4
+simulated: true
+injector: soc_voice_clone_distress
+references:
+  - "FBI IC3 PSA on AI voice cloning in family-emergency scams"
+  - "RBI/NPCI advisories on UPI social-engineering fraud"
+---
+id: VY-SOC-002
+name: Deepfake video CFO payment instruction
+summary: >-
+  A finance executive joins what appears to be a routine internal video call. Other
+  participants are real-time deepfakes of the CFO and a colleague, who instruct an urgent
+  vendor payment for a confidential acquisition, bypassing the normal approval chain.
+rails: [neft, rtgs, cross_border]
+genai_enablers: [deepfake_video, voice_clone, llm_dialogue]
+surfaces: [voice_call, email, web]
+monetization: [push_payment, mule_transfer, crypto_offramp]
+kill_chain:
+  - phase: recon
+    description: Map the finance org chart, approval thresholds and current M&A rumours from LinkedIn and filings.
+    genai_used: false
+  - phase: resource_dev
+    description: Build real-time face and voice models of the CFO from earnings-call and conference footage.
+    genai_used: true
+  - phase: pretext
+    description: Schedule a plausible calendar invite referencing a confidential transaction.
+    genai_used: true
+  - phase: trust_build
+    description: Run a live multi-party deepfake call so the victim sees familiar faces corroborating each other.
+    genai_used: true
+  - phase: instrument
+    description: Victim raises a high-value beneficiary payment outside standard dual authorisation.
+    genai_used: false
+  - phase: monetize
+    description: Funds land in a newly registered corporate account and are converted or moved cross-border same day.
+    genai_used: false
+observables:
+  - new_corporate_beneficiary
+  - payment_exceeds_role_historical_maximum
+  - approval_chain_shortcut
+  - beneficiary_account_age_days_low
+  - cross_border_first_use
+  - urgency_keywords_in_payment_reference
+mitigations:
+  - Out-of-band callback to a directory-held number for payments above threshold
+  - Enforced dual authorisation that cannot be waived by seniority
+  - Beneficiary account-age and name-match checks at initiation
+victim_profile:
+  segment: corporate
+  notes: Mid-market treasury teams with fewer than five finance staff and no formal callback policy.
+status: emerging
+severity: 5
+scalability: 2
+detectability: 5
+simulated: true
+injector: soc_deepfake_cfo_bec
+references:
+  - "Reported 2024 Hong Kong multi-participant deepfake video BEC loss (~USD 25M)"
+---
+id: VY-SOC-003
+name: LLM-personalised smishing to card-not-present cashout
+summary: >-
+  An LLM ingests a breached marketing list and generates per-recipient SMS referencing the
+  victim's actual bank, city and a recent plausible transaction, driving them to a cloned
+  payment page that harvests card details and OTP in real time.
+rails: [card_cnp]
+genai_enablers: [llm_content, localisation, code_gen, persona_synthesis]
+surfaces: [sms, web]
+monetization: [cnp_purchase, goods_resale, gift_card]
+kill_chain:
+  - phase: recon
+    description: Correlate breach dumps to derive bank, city and language per victim.
+    genai_used: false
+  - phase: resource_dev
+    description: Generate thousands of unique, grammatically native SMS variants and a pixel-accurate cloned checkout page.
+    genai_used: true
+  - phase: pretext
+    description: Send the personalised alert claiming a suspicious transaction requiring immediate verification.
+    genai_used: true
+  - phase: credential_access
+    description: Harvest PAN, CVV and relay the OTP through a live operator console.
+    genai_used: false
+  - phase: evasion
+    description: Rotate sending IDs and page domains faster than blocklists propagate; no two messages share a template hash.
+    genai_used: true
+  - phase: monetize
+    description: Immediate high-value purchases at low-friction digital merchants, resold for cash.
+    genai_used: false
+observables:
+  - cnp_at_never_seen_merchant
+  - otp_entered_within_seconds_of_sms
+  - device_fingerprint_unseen_for_card
+  - rapid_successive_auth_attempts
+  - shipping_billing_mismatch
+  - digital_goods_high_value_first_purchase
+mitigations:
+  - Sender-ID allowlisting and URL rewriting at the telco layer
+  - Step-up on unseen device plus unseen merchant combination
+  - Delayed fulfilment on first high-value digital-goods purchase
+victim_profile:
+  age_bands: ["25-45"]
+  digital_tenure: high
+  segment: retail
+status: established
+severity: 3
+scalability: 5
+detectability: 3
+simulated: true
+injector: soc_smishing_cnp
+references:
+  - "Anti-Phishing Working Group trend reports on generative phishing content"
+---
+id: VY-SOC-004
+name: Long-con romance investment with LLM persona
+summary: >-
+  A synthetic romantic persona maintained by an LLM across weeks of daily conversation
+  gradually introduces a fraudulent trading platform, showing fabricated gains before
+  soliciting escalating deposits that cannot be withdrawn.
+rails: [upi_p2p, imps, neft, cross_border]
+genai_enablers: [persona_synthesis, llm_dialogue, deepfake_video, localisation]
+surfaces: [social_media, chat_app, web, voice_call]
+monetization: [push_payment, crypto_offramp, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Profile emotionally isolated targets with disposable savings from dating and social platforms.
+    genai_used: true
+  - phase: resource_dev
+    description: Generate a consistent synthetic identity with photo set, backstory and voice, maintained by an LLM with persistent memory.
+    genai_used: true
+  - phase: trust_build
+    description: Sustain weeks of individualised daily conversation across hundreds of concurrent victims.
+    genai_used: true
+  - phase: pretext
+    description: Introduce a controlled investment platform showing fabricated portfolio growth.
+    genai_used: true
+  - phase: instrument
+    description: Victim makes escalating deposits, often liquidating fixed deposits or taking loans.
+    genai_used: false
+  - phase: launder
+    description: Deposits are aggregated through layered mule accounts and off-ramped to crypto.
+    genai_used: false
+observables:
+  - sustained_escalating_payments_to_same_counterparty
+  - savings_product_liquidation_precedes_transfer
+  - counterparty_receives_from_many_unrelated_payers
+  - payment_reference_investment_keywords
+  - new_loan_drawdown_then_immediate_transfer
+  - transfer_pattern_persists_over_weeks
+mitigations:
+  - Cumulative-exposure alerting across a rolling window per counterparty
+  - Intervention prompts when savings liquidation is followed by outbound transfer
+  - Shared industry counterparty risk lists
+victim_profile:
+  age_bands: ["40-65"]
+  segment: retail
+  notes: Disproportionately affects recently widowed or divorced individuals.
+status: established
+severity: 5
+scalability: 4
+detectability: 4
+simulated: true
+injector: soc_romance_investment
+references:
+  - "FTC consumer sentinel reporting on romance and investment scam losses"
+---
+id: VY-SOC-005
+name: Fake bank support callback via spoofed IVR
+summary: >-
+  Victim searches for a bank helpline, reaches an SEO-poisoned fraudulent number, and is
+  handled by an AI voice agent that reproduces the bank's real IVR tree before escalating
+  to a "fraud desk" that walks them into authorising a transfer to a "safe account".
+rails: [upi_p2p, imps, neft]
+genai_enablers: [voice_clone, llm_dialogue, agentic_automation]
+surfaces: [voice_call, ivr, web]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: resource_dev
+    description: Clone the bank's IVR prompts and deploy an autonomous voice agent able to handle inbound volume.
+    genai_used: true
+  - phase: recon
+    description: Poison search results and map listings for the bank's support number.
+    genai_used: false
+  - phase: trust_build
+    description: Reproduce the authentic IVR experience, then have the agent recite partial real account details obtained from a breach.
+    genai_used: true
+  - phase: pretext
+    description: Claim the account is compromised and funds must be moved to a bank-controlled safe account.
+    genai_used: true
+  - phase: instrument
+    description: Victim transfers the full balance to the attacker-controlled account.
+    genai_used: false
+observables:
+  - full_balance_sweep
+  - first_time_beneficiary
+  - inbound_call_precedes_payment
+  - payment_reference_safe_account_keywords
+  - beneficiary_fan_in_from_unrelated_payers
+mitigations:
+  - Verified helpline listings and in-app-only support entry points
+  - Balance-sweep detection with mandatory step-up
+  - Customer education embedded at the transfer confirmation screen
+victim_profile:
+  age_bands: ["45-70"]
+  digital_tenure: low
+status: emerging
+severity: 4
+scalability: 4
+detectability: 3
+simulated: false
+references:
+  - "Indian Cyber Crime Coordination Centre advisories on fake helpline fraud"
+---
+id: VY-SOC-006
+name: Deepfake celebrity endorsement to fraudulent investment app
+summary: >-
+  Short-form video ads featuring a deepfaked business celebrity endorsing a "government
+  backed" trading scheme drive victims into a WhatsApp group run by LLM agents that
+  orchestrate deposits with fabricated social proof from fake co-investors.
+rails: [upi_p2m, upi_p2p, imps]
+genai_enablers: [deepfake_video, voice_clone, llm_dialogue, persona_synthesis]
+surfaces: [social_media, chat_app, mobile_app]
+monetization: [push_payment, mule_transfer, crypto_offramp]
+kill_chain:
+  - phase: resource_dev
+    description: Produce deepfake endorsement videos and a polished trading app with fabricated returns.
+    genai_used: true
+  - phase: recon
+    description: Target the ads at demographics with investment intent signals.
+    genai_used: false
+  - phase: trust_build
+    description: LLM-driven fake co-investors post testimonials and screenshots in the group chat.
+    genai_used: true
+  - phase: instrument
+    description: Victims deposit through UPI to rotating merchant VPAs.
+    genai_used: false
+  - phase: evasion
+    description: Merchant VPAs are rotated before volume triggers acquirer review.
+    genai_used: false
+  - phase: launder
+    description: Funds are consolidated and off-ramped.
+    genai_used: false
+observables:
+  - payments_to_recently_registered_merchant
+  - merchant_vpa_short_lifetime_high_volume
+  - many_unrelated_payers_to_single_merchant
+  - escalating_deposit_sequence
+  - merchant_category_mismatch_vs_behaviour
+mitigations:
+  - Acquirer-side merchant velocity and lifetime monitoring
+  - Faster takedown pipelines for deepfake ad creatives
+  - Payer-side warnings on payments to very new merchants
+victim_profile:
+  age_bands: ["30-60"]
+  segment: retail
+status: emerging
+severity: 4
+scalability: 5
+detectability: 3
+simulated: false
+---
+id: VY-SOC-007
+name: Screen-share assisted transaction hijack
+summary: >-
+  Under a support or KYC pretext delivered by an AI voice agent, the victim installs a
+  remote-access app; the attacker observes credentials and OTPs and drives the payment from
+  the victim's own device, defeating device-binding and behavioural biometrics.
+rails: [upi_p2p, imps, card_cnp]
+genai_enablers: [voice_clone, llm_dialogue]
+surfaces: [voice_call, screen_share, mobile_app]
+monetization: [push_payment, cnp_purchase, mule_transfer]
+kill_chain:
+  - phase: pretext
+    description: AI voice agent claims a pending KYC expiry or refund requiring assistance.
+    genai_used: true
+  - phase: trust_build
+    description: Guide the victim through installing a legitimate remote-access application.
+    genai_used: true
+  - phase: credential_access
+    description: Observe PIN entry and OTP delivery directly on the victim's screen.
+    genai_used: false
+  - phase: instrument
+    description: Initiate transfers from the victim's genuine, bound device.
+    genai_used: false
+observables:
+  - remote_access_app_concurrent_with_session
+  - interaction_timing_atypical_for_user
+  - accessibility_service_active_during_payment
+  - first_time_beneficiary
+  - full_balance_sweep
+mitigations:
+  - Block payment flows while screen-sharing or accessibility services are active
+  - Behavioural-biometric divergence checks on input cadence
+victim_profile:
+  age_bands: ["35-70"]
+  digital_tenure: low
+status: established
+severity: 4
+scalability: 3
+detectability: 2
+simulated: false
+---
+id: VY-SOC-008
+name: Synthetic job-offer advance-fee and task scam
+summary: >-
+  LLM-run recruiter personas onboard victims into a fake part-time "task rating" job, pay
+  small genuine commissions to establish trust, then require escalating prepaid deposits to
+  unlock higher-earning task tiers.
+rails: [upi_p2p, upi_p2m, wallet_ppi]
+genai_enablers: [llm_dialogue, persona_synthesis, localisation, agentic_automation]
+surfaces: [chat_app, sms, social_media]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Target job seekers and students through messaging platforms at scale.
+    genai_used: true
+  - phase: trust_build
+    description: Pay out small real commissions for initial tasks to establish credibility.
+    genai_used: false
+  - phase: pretext
+    description: Introduce tiered tasks requiring the victim to deposit their own funds first.
+    genai_used: true
+  - phase: instrument
+    description: Victim makes escalating deposits chasing locked earnings.
+    genai_used: false
+  - phase: launder
+    description: Deposits move through student and gig-worker mule accounts.
+    genai_used: false
+observables:
+  - small_inbound_credit_precedes_larger_outbound
+  - escalating_deposit_sequence
+  - counterparty_receives_from_many_unrelated_payers
+  - young_account_holder_atypical_volume
+  - reciprocal_low_value_then_high_value_pattern
+mitigations:
+  - Detect the small-credit-then-large-debit grooming signature
+  - Age-segmented velocity limits for new-to-bank young accounts
+victim_profile:
+  age_bands: ["18-30"]
+  segment: retail
+  notes: Students and first-job seekers; often become mules themselves afterwards.
+status: established
+severity: 3
+scalability: 5
+detectability: 3
+simulated: true
+injector: soc_task_scam_grooming
+---
+id: VY-SOC-009
+name: AI-generated fake merchant storefront
+summary: >-
+  A complete e-commerce brand - product photography, reviews, policy pages, support chat -
+  is generated end to end, accepts card and UPI payments for goods that never ship, and
+  dissolves before chargeback volume triggers acquirer action.
+rails: [card_cnp, upi_p2m]
+genai_enablers: [llm_content, code_gen, persona_synthesis, agentic_automation]
+surfaces: [web, social_media, marketplace, merchant_chatbot]
+monetization: [goods_resale, push_payment, cnp_purchase]
+kill_chain:
+  - phase: resource_dev
+    description: Generate storefront, catalogue imagery, review corpus and support chatbot in hours.
+    genai_used: true
+  - phase: recon
+    description: Buy targeted social ads against high-intent shopping audiences.
+    genai_used: false
+  - phase: instrument
+    description: Collect payments for undeliverable goods.
+    genai_used: false
+  - phase: evasion
+    description: AI support chatbot stalls disputes past the chargeback window with plausible shipping updates.
+    genai_used: true
+  - phase: monetize
+    description: Settle and dissolve the merchant entity before the dispute ratio surfaces.
+    genai_used: false
+observables:
+  - merchant_age_days_low
+  - merchant_dispute_ratio_rising
+  - merchant_volume_ramp_steep
+  - merchant_category_code_mismatch
+  - settlement_withdrawal_velocity_high
+mitigations:
+  - Rolling reserves and staged settlement for new merchants
+  - Catalogue and imagery provenance checks at onboarding
+  - Dispute-ratio early-warning thresholds well below scheme limits
+status: emerging
+severity: 3
+scalability: 5
+detectability: 3
+simulated: false
+---
+id: VY-SOC-010
+name: Cloned-voice vishing against contact-centre agents
+summary: >-
+  Rather than targeting customers, the attacker clones a customer's voice to defeat the
+  bank contact centre's own voice biometrics and knowledge-based authentication, then
+  requests a beneficiary addition or contact-detail change.
+rails: [imps, neft, upi_p2p]
+genai_enablers: [voice_clone, llm_dialogue]
+surfaces: [voice_call, ivr]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Acquire breached KBA data and a voice sample of the target customer.
+    genai_used: false
+  - phase: resource_dev
+    description: Clone the customer's voice with sufficient fidelity to pass passive voice biometrics.
+    genai_used: true
+  - phase: credential_access
+    description: Pass agent authentication and change the registered mobile number or email.
+    genai_used: true
+  - phase: instrument
+    description: Add a beneficiary and transfer once the notification channel is under attacker control.
+    genai_used: false
+observables:
+  - contact_detail_change_precedes_beneficiary_add
+  - beneficiary_add_then_immediate_high_value_transfer
+  - channel_switch_before_payment
+  - notification_channel_recently_modified
+mitigations:
+  - Mandatory cooling-off after contact-detail change before beneficiary addition
+  - Liveness and replay-attack detection on voice biometrics
+  - Notify the old channel on any contact-detail change
+status: emerging
+severity: 4
+scalability: 3
+detectability: 4
+simulated: false

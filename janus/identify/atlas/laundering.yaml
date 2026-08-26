@@ -1,0 +1,181 @@
+# Laundering and cash-out vectors. Detection here is fundamentally a graph problem: no single
+# transaction in a layering chain is anomalous on its own, which is precisely the design intent.
+---
+id: VY-LAUND-001
+name: Adaptive micro-structuring below reporting thresholds
+summary: >-
+  An automation agent splits proceeds into amounts and intervals sampled from the genuine
+  transaction distribution of the surrounding population, rather than from round numbers just
+  under a threshold, defeating both fixed-threshold rules and simple structuring heuristics.
+rails: [upi_p2p, imps, neft]
+genai_enablers: [agentic_automation, adversarial_ml, code_gen]
+surfaces: [mobile_app, api_direct]
+monetization: [mule_transfer, cash_out]
+kill_chain:
+  - phase: recon
+    description: Estimate the reporting and alerting thresholds in force at the target institutions.
+    genai_used: false
+  - phase: resource_dev
+    description: Fit the amount and timing distribution of genuine traffic and sample splits from it.
+    genai_used: true
+  - phase: evasion
+    description: Avoid round numbers and regular intervals that structuring rules key on.
+    genai_used: true
+  - phase: launder
+    description: Move the full sum through many statistically unremarkable hops.
+    genai_used: false
+observables:
+  - aggregate_throughput_high_despite_small_transactions
+  - amount_split_ratios_non_round
+  - balance_retention_ratio_near_zero
+  - counterparty_set_churns_rapidly
+  - fan_in_then_fan_out_within_short_window
+mitigations:
+  - Score aggregate throughput and balance retention rather than per-transaction amounts
+  - Graph-level flow conservation analysis across accounts
+status: emerging
+severity: 4
+scalability: 4
+detectability: 5
+simulated: true
+injector: laund_adaptive_structuring
+---
+id: VY-LAUND-002
+name: Layered mule chain with randomised hop depth
+summary: >-
+  Proceeds traverse a chain of accounts with randomised depth, delay and split ratio so that
+  no fixed-depth tracing rule reaches the exit node before the funds are cashed out.
+rails: [upi_p2p, imps, neft]
+genai_enablers: [agentic_automation, code_gen]
+surfaces: [mobile_app, api_direct]
+monetization: [mule_transfer, cash_out, crypto_offramp]
+kill_chain:
+  - phase: resource_dev
+    description: Assemble a pool of mule accounts across multiple institutions.
+    genai_used: false
+  - phase: launder
+    description: Route funds through randomised paths with varying hop counts and delays.
+    genai_used: true
+  - phase: evasion
+    description: Cross institutional boundaries at each hop so no single bank sees the whole chain.
+    genai_used: false
+  - phase: monetize
+    description: Cash out or off-ramp at the exit node.
+    genai_used: false
+observables:
+  - transfer_graph_component_size_anomaly
+  - fan_in_then_fan_out_within_short_window
+  - hop_depth_exceeds_typical_p2p_pattern
+  - account_dormant_then_sudden_high_throughput
+  - cross_institution_chain_within_short_window
+mitigations:
+  - Cross-institution transaction-graph sharing under a trusted framework
+  - Flow-tracing that follows value rather than fixed hop depth
+status: established
+severity: 4
+scalability: 4
+detectability: 5
+simulated: true
+injector: laund_layered_mule_chain
+---
+id: VY-LAUND-003
+name: Crypto off-ramp via P2P exchange desks
+summary: >-
+  Scam proceeds are converted to stablecoin through peer-to-peer exchange desks that accept
+  UPI, placing the value beyond the domestic payment system within minutes of the original
+  victim debit.
+rails: [upi_p2p, upi_p2m, imps]
+genai_enablers: [agentic_automation, persona_synthesis]
+surfaces: [web, chat_app, mobile_app]
+monetization: [crypto_offramp, cash_out]
+kill_chain:
+  - phase: launder
+    description: Move proceeds to accounts operated by P2P crypto desks.
+    genai_used: false
+  - phase: monetize
+    description: Convert to stablecoin and move on-chain.
+    genai_used: false
+  - phase: evasion
+    description: Spread across many desk counterparties so no single one shows concentrated risk.
+    genai_used: true
+observables:
+  - counterparty_known_crypto_desk
+  - short_dwell_time_before_onward_transfer
+  - many_unrelated_payers_to_single_counterparty
+  - balance_retention_ratio_near_zero
+mitigations:
+  - Counterparty risk lists for known P2P desk accounts
+  - Dwell-time scoring on pass-through accounts
+status: established
+severity: 4
+scalability: 4
+detectability: 4
+simulated: false
+---
+id: VY-LAUND-004
+name: Trade-based laundering through fake invoicing
+summary: >-
+  Generated invoices, shipping documents and customs paperwork substantiate fictitious or
+  mis-priced trade between related shell entities, moving value across borders under the
+  cover of legitimate commerce.
+rails: [rtgs, neft, cross_border]
+genai_enablers: [doc_forgery, llm_content, persona_synthesis]
+surfaces: [web, email, api_direct]
+monetization: [mule_transfer, crypto_offramp]
+kill_chain:
+  - phase: resource_dev
+    description: Incorporate shell entities and generate a coherent trade-documentation trail.
+    genai_used: true
+  - phase: launder
+    description: Settle fictitious or mis-priced invoices between related parties.
+    genai_used: false
+  - phase: evasion
+    description: Keep unit pricing within a defensible range of market comparables.
+    genai_used: true
+observables:
+  - invoice_unit_price_deviates_from_market_comparable
+  - counterparties_share_beneficial_ownership_signals
+  - trade_flow_without_corresponding_logistics_records
+  - entity_age_days_low_with_high_value_trade
+mitigations:
+  - Price-benchmarking against customs and market reference data
+  - Beneficial-ownership graph resolution across counterparties
+status: established
+severity: 4
+scalability: 2
+detectability: 5
+simulated: false
+---
+id: VY-LAUND-005
+name: Gaming and gift-card value laundering
+summary: >-
+  Proceeds are converted into in-game currency, gift cards or wallet balances, transferred
+  between accounts inside a closed platform economy that has no AML obligation, and resold
+  for clean funds outside it.
+rails: [card_cnp, upi_p2m, wallet_ppi]
+genai_enablers: [agentic_automation, persona_synthesis, llm_content]
+surfaces: [web, marketplace, mobile_app]
+monetization: [gift_card, goods_resale, cash_out]
+kill_chain:
+  - phase: resource_dev
+    description: Create bulk platform accounts with synthetic identities.
+    genai_used: true
+  - phase: launder
+    description: Purchase and transfer in-platform value between controlled accounts.
+    genai_used: false
+  - phase: monetize
+    description: Resell the value on secondary marketplaces for clean funds.
+    genai_used: false
+observables:
+  - gift_card_or_digital_goods_concentration
+  - closed_loop_value_transfer_between_new_accounts
+  - purchase_then_immediate_intra_platform_transfer
+  - secondary_marketplace_resale_pattern
+mitigations:
+  - Intra-platform transfer limits and velocity controls
+  - Treat digital-goods concentration as a laundering signal, not only a fraud signal
+status: emerging
+severity: 3
+scalability: 4
+detectability: 4
+simulated: false

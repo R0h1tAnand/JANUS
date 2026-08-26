@@ -1,0 +1,239 @@
+{
+  "generated_at": "2026-08-26T19:52:57+00:00",
+  "n_events": 718412,
+  "fraud_rate": 0.00605,
+  "references": [
+    {
+      "reference": "sparkov",
+      "compared_on": [
+        "amount_z",
+        "log_amount",
+        "hour",
+        "day_of_week"
+      ],
+      "n_synthetic": 165904,
+      "n_reference": 300000,
+      "ks": [
+        {
+          "column": "amount_z",
+          "statistic": 0.1481,
+          "p_value": 0.0,
+          "verdict": "fair"
+        },
+        {
+          "column": "log_amount",
+          "statistic": 0.2887,
+          "p_value": 0.0,
+          "verdict": "poor"
+        },
+        {
+          "column": "hour",
+          "statistic": 0.1476,
+          "p_value": 0.0,
+          "verdict": "fair"
+        },
+        {
+          "column": "day_of_week",
+          "statistic": 0.0656,
+          "p_value": 0.0,
+          "verdict": "good"
+        }
+      ],
+      "ks_mean": 0.1625,
+      "correlation_delta": 0.0701,
+      "benford_synthetic": {
+        "observed": [
+          0.3175691966438422,
+          0.16895915710290288,
+          0.12430080046291832,
+          0.07455516443244285,
+          0.09643528787732665,
+          0.056080624939724176,
+          0.07439241971260488,
+          0.04609292120744527,
+          0.041614427620792746
+        ],
+        "expected": [
+          0.3010299956639812,
+          0.17609125905568124,
+          0.12493873660829993,
+          0.09691001300805642,
+          0.07918124604762482,
+          0.06694678963061322,
+          0.05799194697768673,
+          0.05115252244738129,
+          0.04575749056067514
+        ],
+        "mad": 0.011154159009884665,
+        "verdict": "acceptable"
+      },
+      "benford_reference": {
+        "observed": [
+          0.21678333333333333,
+          0.12176666666666666,
+          0.11972,
+          0.12823333333333334,
+          0.11855,
+          0.11131666666666666,
+          0.08439,
+          0.057806666666666666,
+          0.041433333333333336
+        ],
+        "expected": [
+          0.3010299956639812,
+          0.17609125905568124,
+          0.12493873660829993,
+          0.09691001300805642,
+          0.07918124604762482,
+          0.06694678963061322,
+          0.05799194697768673,
+          0.05115252244738129,
+          0.04575749056067514
+        ],
+        "mad": 0.032914255234512045,
+        "verdict": "nonconforming"
+      },
+      "discriminator": {
+        "auc": 0.7708,
+        "auc_std": 0.0011,
+        "n_per_class": 120000,
+        "verdict": "moderate",
+        "tells": [
+          {
+            "feature": "amount_z",
+            "importance": 0.601
+          },
+          {
+            "feature": "hour",
+            "importance": 0.271
+          },
+          {
+            "feature": "day_of_week",
+            "importance": 0.129
+          }
+        ]
+      },
+      "tstr": {
+        "available": true,
+        "tstr_auc": 0.6921,
+        "trtr_auc": 0.9761,
+        "transfer_ratio": 0.709,
+        "n_real_test": 150000
+      },
+      "shape": {
+        "synthetic_sd": 0.628,
+        "reference_sd": 0.603,
+        "synthetic_skew": 0.065,
+        "reference_skew": -0.443
+      }
+    },
+    {
+      "reference": "paysim",
+      "compared_on": [
+        "amount_z",
+        "log_amount"
+      ],
+      "n_synthetic": 527048,
+      "n_reference": 310068,
+      "ks": [
+        {
+          "column": "amount_z",
+          "statistic": 0.0876,
+          "p_value": 0.0,
+          "verdict": "good"
+        },
+        {
+          "column": "log_amount",
+          "statistic": 0.6746,
+          "p_value": 0.0,
+          "verdict": "poor"
+        }
+      ],
+      "ks_mean": 0.3811,
+      "correlation_delta": 0.0,
+      "benford_synthetic": {
+        "observed": [
+          0.3087916091134014,
+          0.17712807941591657,
+          0.12927665032406915,
+          0.06508515353440295,
+          0.1165833093001017,
+          0.04768446137733186,
+          0.08169085168713286,
+          0.03942335422959579,
+          0.03433653101804769
+        ],
+        "expected": [
+          0.3010299956639812,
+          0.17609125905568124,
+          0.12493873660829993,
+          0.09691001300805642,
+          0.07918124604762482,
+          0.06694678963061322,
+          0.05799194697768673,
+          0.05115252244738129,
+          0.04575749056067514
+        ],
+        "mad": 0.01649718121941062,
+        "verdict": "nonconforming"
+      },
+      "benford_reference": {
+        "observed": [
+          0.33543287278919465,
+          0.20151063637653677,
+          0.1255660048763497,
+          0.08342686120463898,
+          0.06364410387398893,
+          0.05306900421842951,
+          0.04849903892049486,
+          0.04566740198924107,
+          0.04318407575112556
+        ],
+        "expected": [
+          0.3010299956639812,
+          0.17609125905568124,
+          0.12493873660829993,
+          0.09691001300805642,
+          0.07918124604762482,
+          0.06694678963061322,
+          0.05799194697768673,
+          0.05115252244738129,
+          0.04575749056067514
+        ],
+        "mad": 0.013433227269804162,
+        "verdict": "acceptable"
+      },
+      "discriminator": {
+        "auc": 0.7236,
+        "auc_std": 0.0016,
+        "n_per_class": 120000,
+        "verdict": "moderate",
+        "tells": [
+          {
+            "feature": "amount_z",
+            "importance": 1.0
+          }
+        ]
+      },
+      "tstr": {
+        "available": true,
+        "tstr_auc": 0.5586,
+        "trtr_auc": 0.8237,
+        "transfer_ratio": 0.6782,
+        "n_real_test": 150000
+      },
+      "shape": {
+        "synthetic_sd": 0.665,
+        "reference_sd": 0.834,
+        "synthetic_skew": -0.168,
+        "reference_skew": -0.346
+      }
+    }
+  ],
+  "known_limitations": [
+    "Comparison is restricted to amount, hour and weekday - the only fields both public reference datasets contain. Graph structure, device signals and session context are central to Vyuha's attacks but absent from Sparkov and PaySim, so they are defended on construction rather than measured here.",
+    "PaySim's `step` is a simulation tick index, not a wall clock, so it contributes amount-distribution evidence only. An earlier revision compared hour-of-day against it and produced a spurious 0.98 discriminator AUC.",
+    "Absolute amount levels are not comparable across economies (Sparkov is US card spend, PaySim is an unspecified currency), so the headline comparison uses standardised log-amount. Raw log_amount KS is reported alongside and is expected to be poor.",
+    "Residual gap: synthetic log-amount skew is near 0 against Sparkov's -0.44. That skew comes from a US-specific category structure where grocery and fuel are the highest frequency, highest ticket and lowest variance categories. Matching it would require mis-stating Indian ticket sizes, so it is left in place and reported."
+  ]
+}

@@ -1,0 +1,361 @@
+# Card-rail vectors (CNP, CP, tokenised, ATM).
+# Cards retain a chargeback safety net that UPI lacks, so the attacker's economics shift from
+# "maximise per-victim take" to "maximise attempt volume and stay under dispute thresholds".
+# GenAI mainly attacks the volume dimension: enumeration, testing and dispute manipulation.
+---
+id: VY-CARD-001
+name: Agentic card testing across BIN ranges
+summary: >-
+  An autonomous agent validates large batches of stolen or algorithmically generated card
+  numbers by attempting micro-authorisations at low-friction merchants, adapting merchant
+  choice, amount and pacing in response to decline codes rather than following a fixed script.
+rails: [card_cnp]
+genai_enablers: [agentic_automation, code_gen, adversarial_ml]
+surfaces: [web, api_direct]
+monetization: [cnp_purchase, goods_resale]
+kill_chain:
+  - phase: resource_dev
+    description: Assemble candidate PANs from breach dumps and BIN-valid generation, and enumerate merchants with weak velocity controls.
+    genai_used: true
+  - phase: instrument
+    description: Attempt low-value authorisations or zero-value account verifications to separate live cards from dead ones.
+    genai_used: false
+  - phase: evasion
+    description: Adapt pacing, merchant rotation and amount jitter in response to observed decline codes and soft blocks.
+    genai_used: true
+  - phase: monetize
+    description: Sell or immediately spend the validated live cards at higher value.
+    genai_used: false
+observables:
+  - micro_amount_authorisation_burst
+  - high_decline_ratio_per_device
+  - many_distinct_pans_single_device_fingerprint
+  - sequential_or_clustered_bin_ranges
+  - zero_value_auth_spike_at_merchant
+  - interarrival_time_machine_regular
+  - merchant_approval_rate_sudden_drop
+mitigations:
+  - Per-merchant velocity limits on distinct PANs per device and per IP
+  - Network-level BIN-range attack detection across acquirers
+  - Adaptive friction when decline ratio crosses a threshold
+victim_profile:
+  segment: issuer_portfolio
+  notes: Harms merchants and issuers directly; cardholders see the loss only at the monetisation stage.
+status: established
+severity: 3
+scalability: 5
+detectability: 3
+simulated: true
+injector: card_agentic_testing
+references:
+  - "Visa/Mastercard acquirer guidance on enumeration and card-testing attacks"
+---
+id: VY-CARD-002
+name: Real-time OTP relay against 3-D Secure
+summary: >-
+  A live operator console or automated agent proxies the victim between the genuine merchant
+  checkout and a cloned page, relaying the 3-D Secure OTP within its validity window so the
+  authorisation carries a fully authenticated liability shift.
+rails: [card_cnp]
+genai_enablers: [llm_dialogue, agentic_automation, voice_clone]
+surfaces: [web, sms, voice_call]
+monetization: [cnp_purchase, gift_card, goods_resale]
+kill_chain:
+  - phase: pretext
+    description: Drive the victim to a cloned checkout or support flow requiring card verification.
+    genai_used: true
+  - phase: credential_access
+    description: Capture PAN and expiry, trigger the genuine 3DS challenge, and relay the OTP in real time.
+    genai_used: true
+  - phase: instrument
+    description: Complete a fully authenticated purchase that carries the liability shift to the issuer.
+    genai_used: false
+  - phase: monetize
+    description: Convert to gift cards or resellable digital goods immediately.
+    genai_used: false
+observables:
+  - authenticated_transaction_from_unseen_device
+  - otp_consumed_from_different_ip_than_session
+  - three_ds_challenge_latency_atypical
+  - high_value_first_purchase_at_merchant
+  - gift_card_or_digital_goods_concentration
+mitigations:
+  - Bind OTP delivery and consumption to the same device and session context
+  - Risk-based authentication that does not treat 3DS success as sufficient
+  - Out-of-band confirmation for high-value digital-goods purchases
+status: established
+severity: 4
+scalability: 4
+detectability: 4
+simulated: true
+injector: card_otp_relay
+---
+id: VY-CARD-003
+name: Fraudulent token provisioning to attacker wallet
+summary: >-
+  Using stolen card data plus socially engineered or relayed step-up, the attacker provisions
+  the card into a wallet on their own device. Subsequent spend is tokenised and contactless,
+  so it inherits the high trust score normally associated with device-bound tokens.
+rails: [card_token, card_cp]
+genai_enablers: [voice_clone, llm_dialogue, agentic_automation]
+surfaces: [mobile_app, voice_call, sms]
+monetization: [goods_resale, cnp_purchase, cash_out]
+kill_chain:
+  - phase: credential_access
+    description: Obtain PAN, expiry and CVV, then defeat the provisioning step-up via relay or contact-centre social engineering.
+    genai_used: true
+  - phase: instrument
+    description: Provision the card into a wallet on an attacker-controlled device.
+    genai_used: false
+  - phase: evasion
+    description: Spend through tokenised contactless flows that score as low-risk device-bound transactions.
+    genai_used: false
+  - phase: monetize
+    description: Purchase high-resale-value goods in person.
+    genai_used: false
+observables:
+  - token_provisioned_to_new_device_then_immediate_spend
+  - provisioning_geo_differs_from_card_history
+  - wallet_provisioning_step_up_via_contact_centre
+  - contactless_spend_ramp_immediately_post_provisioning
+  - device_id_never_seen_for_cardholder
+mitigations:
+  - Cooling-off window between provisioning and first high-value spend
+  - Treat provisioning step-up as a high-risk event requiring strong authentication
+  - Geo consistency checks between provisioning and card history
+status: emerging
+severity: 4
+scalability: 3
+detectability: 4
+simulated: true
+injector: card_token_provisioning
+---
+id: VY-CARD-004
+name: Generative dispute evidence and first-party fraud
+summary: >-
+  Cardholders - or organised operations at scale - dispute legitimate transactions using
+  LLM-written narratives and generatively edited evidence such as fabricated delivery photos,
+  chat logs and receipts that are tuned to each scheme's dispute reason codes.
+rails: [card_cnp, card_cp]
+genai_enablers: [llm_content, doc_forgery, agentic_automation]
+surfaces: [web, email, merchant_chatbot]
+monetization: [refund_abuse]
+kill_chain:
+  - phase: recon
+    description: Learn the issuer and scheme dispute reason codes most likely to succeed for a merchant category.
+    genai_used: true
+  - phase: resource_dev
+    description: Generate tailored dispute narratives and supporting evidence artefacts.
+    genai_used: true
+  - phase: monetize
+    description: Retain the goods or service while recovering the funds through chargeback.
+    genai_used: false
+  - phase: evasion
+    description: Vary narrative structure and evidence style so no template signature recurs across cases.
+    genai_used: true
+observables:
+  - dispute_rate_per_cardholder_elevated
+  - dispute_narrative_style_anomaly
+  - disputes_concentrated_in_high_resale_categories
+  - delivery_confirmed_but_disputed_not_received
+  - evidence_image_generative_artifacts
+mitigations:
+  - Cardholder-level dispute propensity scoring across merchants
+  - Provenance and generative-artifact detection on submitted evidence
+  - Stronger delivery attestation for high-risk categories
+status: emerging
+severity: 3
+scalability: 5
+detectability: 4
+simulated: true
+injector: card_dispute_abuse
+---
+id: VY-CARD-005
+name: Subscription trial farming with synthetic identities
+summary: >-
+  Automated agents generate large volumes of synthetic identities and virtual card numbers to
+  farm free trials, promotional credits and sign-up bonuses at scale, monetising the promotional
+  value rather than stealing from a cardholder.
+rails: [card_cnp, wallet_ppi]
+genai_enablers: [persona_synthesis, agentic_automation, code_gen, llm_content]
+surfaces: [web, mobile_app, api_direct]
+monetization: [subscription_siphon, goods_resale]
+kill_chain:
+  - phase: resource_dev
+    description: Generate coherent synthetic identities with matching emails, phone numbers and virtual cards.
+    genai_used: true
+  - phase: instrument
+    description: Complete sign-up flows and consume promotional value at scale.
+    genai_used: true
+  - phase: evasion
+    description: Rotate device fingerprints, IPs and behavioural timing to defeat duplicate-account detection.
+    genai_used: true
+observables:
+  - many_signups_shared_device_or_ip_cluster
+  - virtual_card_bin_concentration
+  - signup_to_cancel_lifecycle_uniform
+  - identity_attributes_synthetic_pattern
+  - promotional_credit_redemption_velocity
+mitigations:
+  - Device and network clustering across the signup graph
+  - Virtual-card BIN risk scoring at promotional redemption
+status: emerging
+severity: 2
+scalability: 5
+detectability: 3
+simulated: false
+---
+id: VY-CARD-006
+name: Refund and return abuse via merchant chatbot manipulation
+summary: >-
+  The attacker engages an LLM-backed merchant support agent with prompts engineered to elicit
+  an unwarranted refund, exploiting the model's helpfulness bias and any tool access it has
+  been granted to issue credits without human review.
+rails: [card_cnp, upi_p2m]
+genai_enablers: [llm_dialogue, adversarial_ml]
+surfaces: [merchant_chatbot, web]
+monetization: [refund_abuse]
+kill_chain:
+  - phase: recon
+    description: Probe the support bot to map its policy boundaries and tool permissions.
+    genai_used: true
+  - phase: resource_dev
+    description: Craft prompt sequences that reframe the refund as policy-compliant or invoke fabricated prior commitments.
+    genai_used: true
+  - phase: monetize
+    description: Obtain a refund or store credit without returning goods.
+    genai_used: false
+  - phase: evasion
+    description: Spread attempts across accounts so no single identity shows an anomalous refund rate.
+    genai_used: true
+observables:
+  - refund_issued_without_return_scan
+  - refund_approved_by_automated_agent_above_policy_limit
+  - conversation_turn_count_before_refund_anomalous
+  - customer_refund_ratio_elevated
+  - refund_amount_exceeds_original_capture
+mitigations:
+  - Hard transactional limits enforced outside the model, not in the prompt
+  - Human review above a refund value threshold regardless of agent decision
+  - Log and score agent-issued refunds separately from human-issued ones
+status: emerging
+severity: 3
+scalability: 4
+detectability: 4
+simulated: false
+---
+id: VY-CARD-007
+name: Deepfake-assisted lost-and-stolen card replacement
+summary: >-
+  A cloned voice or deepfake video call to the issuer reports a card lost and requests
+  expedited replacement to an attacker-controlled address, converting a data breach into a
+  physical card in hand.
+rails: [card_cp, card_atm]
+genai_enablers: [voice_clone, deepfake_video, llm_dialogue]
+surfaces: [voice_call, video_kyc, web]
+monetization: [cash_out, goods_resale]
+kill_chain:
+  - phase: recon
+    description: Assemble breached KBA data and a voice or face sample of the cardholder.
+    genai_used: false
+  - phase: credential_access
+    description: Pass issuer authentication using cloned voice and breached knowledge answers.
+    genai_used: true
+  - phase: instrument
+    description: Change the mailing address and request expedited card replacement.
+    genai_used: false
+  - phase: monetize
+    description: Use the physical card for ATM withdrawal and in-person purchases.
+    genai_used: false
+observables:
+  - address_change_precedes_card_reissue
+  - expedited_delivery_requested
+  - reissue_then_atm_withdrawal_in_new_geography
+  - notification_channel_recently_modified
+mitigations:
+  - Notify the previously registered address and channel on any change
+  - Cooling-off between address change and expedited reissue
+status: emerging
+severity: 4
+scalability: 2
+detectability: 4
+simulated: false
+---
+id: VY-CARD-008
+name: BIN enumeration with generative expiry and CVV search
+summary: >-
+  Rather than using breached data, the attacker derives valid PANs from a known BIN using
+  the Luhn checksum and brute-forces the small expiry and CVV space by distributing guesses
+  across many merchants so no single merchant sees a detectable failure pattern.
+rails: [card_cnp]
+genai_enablers: [code_gen, agentic_automation, adversarial_ml]
+surfaces: [web, api_direct]
+monetization: [cnp_purchase, goods_resale]
+kill_chain:
+  - phase: resource_dev
+    description: Generate Luhn-valid PANs across a target BIN and enumerate merchants with weak attempt controls.
+    genai_used: true
+  - phase: instrument
+    description: Distribute expiry and CVV guesses across many merchants and acquirers simultaneously.
+    genai_used: true
+  - phase: evasion
+    description: Keep per-merchant attempt counts below individual velocity thresholds while the aggregate search completes.
+    genai_used: true
+observables:
+  - distributed_low_count_attempts_same_bin
+  - luhn_valid_but_never_issued_pans
+  - cross_merchant_correlated_decline_pattern
+  - sequential_or_clustered_bin_ranges
+mitigations:
+  - Cross-acquirer aggregation of attempt telemetry at the network layer
+  - Issuer-side detection of never-issued PAN probing
+status: established
+severity: 3
+scalability: 5
+detectability: 4
+simulated: false
+---
+id: VY-CARD-009
+name: Synthetic-identity credit bust-out
+summary: >-
+  A fabricated identity built from a real but unused identifier plus generated attributes
+  is nurtured for months of impeccable repayment behaviour, secures escalating credit lines,
+  then draws everything down simultaneously and disappears.
+rails: [card_cnp, card_cp, card_atm]
+genai_enablers: [persona_synthesis, doc_forgery, llm_content, agentic_automation]
+surfaces: [web, mobile_app, video_kyc]
+monetization: [credit_bustout, cash_out, goods_resale]
+kill_chain:
+  - phase: resource_dev
+    description: Construct a synthetic identity and seed a credit file through low-risk products.
+    genai_used: true
+  - phase: persist
+    description: Operate flawlessly for six to eighteen months, paying in full to drive limit increases.
+    genai_used: false
+  - phase: evasion
+    description: Behavioural history looks better than a typical genuine customer, so risk models rank it low.
+    genai_used: false
+  - phase: monetize
+    description: Max out every line simultaneously across cash advance, purchase and transfer.
+    genai_used: false
+observables:
+  - simultaneous_max_drawdown_across_products
+  - utilisation_jump_after_long_low_utilisation
+  - cash_advance_spike_atypical_for_profile
+  - identity_thin_file_at_origination
+  - address_or_device_shared_across_identities
+  - repayment_behaviour_too_regular
+mitigations:
+  - Identity-cluster detection across shared devices, addresses and phone numbers
+  - Treat unusually perfect repayment regularity as a risk signal, not a trust signal
+  - Portfolio-level correlated-drawdown monitoring
+victim_profile:
+  segment: issuer_portfolio
+status: established
+severity: 5
+scalability: 3
+detectability: 5
+simulated: true
+injector: card_synthetic_bustout
+references:
+  - "US Federal Reserve payments-fraud insights on synthetic identity"

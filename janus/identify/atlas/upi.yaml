@@ -1,0 +1,364 @@
+# UPI-native vectors.
+# UPI's design - real-time settlement, irrevocability, push semantics, VPA indirection and
+# a 400M+ user base with wide digital-literacy variance - creates fraud surfaces that have
+# no card-rail equivalent. Detection must act pre-authorisation; there is no chargeback.
+---
+id: VY-UPI-001
+name: Malicious collect-request masquerading as inbound payment
+summary: >-
+  The attacker sends a UPI collect (pull) request framed by an LLM-written accompanying
+  message as an incoming refund or prize credit. The victim, believing they are receiving
+  money, authorises with their UPI PIN and instead debits their own account.
+rails: [upi_collect]
+genai_enablers: [llm_content, localisation, agentic_automation]
+surfaces: [mobile_app, sms, chat_app]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Acquire VPAs in bulk from marketplace listings, QR postings and breach data.
+    genai_used: false
+  - phase: resource_dev
+    description: Generate per-victim refund pretexts in the victim's language and automate collect dispatch at scale.
+    genai_used: true
+  - phase: pretext
+    description: Message the victim that a refund or cashback is pending approval.
+    genai_used: true
+  - phase: instrument
+    description: Victim approves the collect request with their PIN, debiting their own account.
+    genai_used: false
+  - phase: launder
+    description: Collected funds fan out through mule VPAs within minutes.
+    genai_used: false
+observables:
+  - collect_request_from_unknown_payee
+  - collect_approved_within_seconds
+  - collect_request_burst_to_many_vpas
+  - payer_has_no_prior_relationship_with_requester
+  - requester_collect_success_ratio_low
+mitigations:
+  - Suppress collect requests from unverified entities by default
+  - Explicit "you are PAYING" confirmation language with amount emphasis
+  - Requester-side reputation scoring on collect success ratio
+victim_profile:
+  age_bands: ["25-60"]
+  digital_tenure: low
+status: established
+severity: 3
+scalability: 5
+detectability: 2
+simulated: true
+injector: upi_malicious_collect
+references:
+  - "NPCI circulars restricting collect-request usage for unverified entities"
+---
+id: VY-UPI-002
+name: QR code sticker substitution at merchant premises
+summary: >-
+  A physically overlaid QR sticker at a small merchant redirects payments to an attacker
+  VPA. GenAI raises the yield by generating pixel-perfect branded stickers per merchant and
+  by running a chatbot on the fake payee handle that issues fake confirmations.
+rails: [upi_p2m, upi_p2p]
+genai_enablers: [llm_content, code_gen, agentic_automation]
+surfaces: [qr_physical, mobile_app]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Identify high-footfall, low-attention merchants without audio confirmation devices.
+    genai_used: false
+  - phase: resource_dev
+    description: Generate merchant-branded QR stickers indistinguishable from the acquirer's own.
+    genai_used: true
+  - phase: instrument
+    description: Customers pay the substituted VPA believing they are paying the merchant.
+    genai_used: false
+  - phase: evasion
+    description: Rotate the receiving VPA daily to stay under aggregation thresholds.
+    genai_used: false
+observables:
+  - many_unrelated_payers_to_new_personal_vpa
+  - payee_geo_cluster_but_personal_account_type
+  - payment_amounts_match_retail_distribution
+  - payee_vpa_age_days_low
+  - merchant_transaction_volume_sudden_drop
+mitigations:
+  - Audio confirmation devices as a merchant-side control
+  - Detect personal VPAs receiving merchant-shaped payment patterns
+  - Geo-clustered payer anomaly detection per payee
+status: established
+severity: 2
+scalability: 3
+detectability: 3
+simulated: true
+injector: upi_qr_substitution
+---
+id: VY-UPI-003
+name: Autopay mandate abuse via deceptive consent
+summary: >-
+  A fraudulent merchant obtains a UPI autopay mandate under a trivial pretext - a one-rupee
+  verification or a free trial - with LLM-optimised consent copy that obscures the recurring
+  amount and frequency, then debits monthly against a large approved ceiling.
+rails: [upi_mandate]
+genai_enablers: [llm_content, agentic_automation]
+surfaces: [web, mobile_app, merchant_chatbot]
+monetization: [subscription_siphon, push_payment]
+kill_chain:
+  - phase: resource_dev
+    description: A/B optimise mandate consent screens with an LLM to maximise approval while minimising comprehension.
+    genai_used: true
+  - phase: pretext
+    description: Present a one-rupee verification or free trial requiring mandate approval.
+    genai_used: true
+  - phase: instrument
+    description: Victim approves a mandate with a far higher ceiling and recurring frequency than understood.
+    genai_used: false
+  - phase: monetize
+    description: Debit near the ceiling on a recurring schedule across a large victim base.
+    genai_used: false
+  - phase: evasion
+    description: Keep individual debits below the amount that reliably triggers customer attention.
+    genai_used: false
+observables:
+  - mandate_ceiling_far_exceeds_first_debit
+  - mandate_created_then_dormant_then_large_debit
+  - merchant_mandate_portfolio_grows_abnormally_fast
+  - mandate_revocation_rate_high_for_merchant
+  - debit_amount_just_below_notification_threshold
+mitigations:
+  - Cap the ratio between mandate ceiling and first debit
+  - Mandatory plain-language recurring-amount confirmation
+  - Merchant-level mandate revocation-rate monitoring
+status: emerging
+severity: 3
+scalability: 4
+detectability: 4
+simulated: true
+injector: upi_mandate_abuse
+---
+id: VY-UPI-004
+name: VPA typosquatting and homoglyph handles
+summary: >-
+  Attackers register VPAs that are visually near-identical to well-known merchant or utility
+  handles using homoglyphs and plausible suffixes, generated and validated in bulk against
+  handle-availability APIs.
+rails: [upi_p2m, upi_p2p]
+genai_enablers: [code_gen, agentic_automation, llm_content]
+surfaces: [web, sms, chat_app, mobile_app]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: resource_dev
+    description: Enumerate homoglyph and near-miss variants of high-traffic VPAs and register the available ones.
+    genai_used: true
+  - phase: pretext
+    description: Distribute the lookalike handle through spoofed billing reminders.
+    genai_used: true
+  - phase: instrument
+    description: Victim pays the lookalike handle believing it is the genuine biller.
+    genai_used: false
+observables:
+  - payee_vpa_string_distance_near_known_biller
+  - payee_vpa_age_days_low
+  - biller_payment_to_non_verified_handle
+  - payment_amount_matches_utility_bill_distribution
+mitigations:
+  - Homoglyph normalisation and edit-distance screening at VPA registration
+  - Verified-merchant badges enforced in the payment confirmation UI
+status: emerging
+severity: 3
+scalability: 4
+detectability: 3
+simulated: false
+---
+id: VY-UPI-005
+name: Fake merchant onboarding with synthetic KYB documents
+summary: >-
+  Generative document forgery produces convincing GST certificates, shop photographs and
+  utility bills to onboard non-existent merchants at payment aggregators, creating clean
+  acceptance points for scam proceeds.
+rails: [upi_p2m, card_cnp]
+genai_enablers: [doc_forgery, persona_synthesis, llm_content]
+surfaces: [web, api_direct]
+monetization: [push_payment, mule_transfer, crypto_offramp]
+kill_chain:
+  - phase: resource_dev
+    description: Generate a coherent synthetic business identity with supporting documentation and imagery.
+    genai_used: true
+  - phase: credential_access
+    description: Pass aggregator KYB review and obtain settlement credentials.
+    genai_used: true
+  - phase: monetize
+    description: Route scam proceeds through the merchant acceptance point.
+    genai_used: false
+  - phase: launder
+    description: Withdraw settlements rapidly to layered accounts before review.
+    genai_used: false
+observables:
+  - merchant_age_days_low
+  - settlement_withdrawal_velocity_high
+  - merchant_payer_base_geographically_dispersed
+  - merchant_refund_rate_near_zero_with_high_disputes
+  - kyb_document_metadata_anomalies
+mitigations:
+  - Document provenance and generative-artifact detection at onboarding
+  - Physical or video verification for high-risk merchant categories
+  - Rolling settlement reserves for the first 90 days
+status: emerging
+severity: 4
+scalability: 4
+detectability: 4
+simulated: true
+injector: upi_fake_merchant_onboarding
+---
+id: VY-UPI-006
+name: UPI Lite offline balance draining
+summary: >-
+  Abuse of the low-value, PIN-less UPI Lite flow: once a device is compromised or coerced,
+  many sub-threshold debits are executed without authentication friction, staying below
+  per-transaction limits while draining the Lite balance repeatedly.
+rails: [upi_lite]
+genai_enablers: [agentic_automation, code_gen]
+surfaces: [mobile_app]
+monetization: [push_payment, mule_transfer]
+kill_chain:
+  - phase: credential_access
+    description: Obtain device access through malware, screen share or physical coercion.
+    genai_used: false
+  - phase: resource_dev
+    description: Script automated sub-threshold debit sequences timed to top-up cycles.
+    genai_used: true
+  - phase: instrument
+    description: Execute repeated PIN-less debits below the authentication threshold.
+    genai_used: false
+  - phase: evasion
+    description: Stay under per-transaction and daily notification thresholds.
+    genai_used: false
+observables:
+  - repeated_sub_threshold_debits
+  - lite_balance_topup_then_immediate_drain
+  - debit_interarrival_time_machine_regular
+  - same_payee_repeated_small_amounts
+mitigations:
+  - Cumulative velocity limits on PIN-less flows, not just per-transaction caps
+  - Machine-regularity detection on inter-arrival timing
+status: theoretical
+severity: 2
+scalability: 3
+detectability: 4
+simulated: false
+---
+id: VY-UPI-007
+name: Coordinated mule VPA farm with agentic orchestration
+summary: >-
+  Hundreds of rented or purchased accounts are orchestrated by an automation agent that
+  routes scam proceeds through randomised paths, varying amounts, delays and hop counts to
+  defeat static structuring rules.
+rails: [upi_p2p, imps]
+genai_enablers: [agentic_automation, adversarial_ml, code_gen]
+surfaces: [mobile_app, api_direct]
+monetization: [mule_transfer, cash_out, crypto_offramp]
+kill_chain:
+  - phase: resource_dev
+    description: Recruit or rent accounts at scale, often from students and gig workers.
+    genai_used: true
+  - phase: instrument
+    description: Receive scam proceeds into first-layer mule accounts.
+    genai_used: false
+  - phase: evasion
+    description: Randomise hop counts, delays and split ratios so no fixed structuring rule matches.
+    genai_used: true
+  - phase: launder
+    description: Consolidate at exit nodes and cash out or off-ramp.
+    genai_used: false
+observables:
+  - fan_in_then_fan_out_within_short_window
+  - account_dormant_then_sudden_high_throughput
+  - balance_retention_ratio_near_zero
+  - transfer_graph_component_size_anomaly
+  - counterparty_set_churns_rapidly
+  - amount_split_ratios_non_round
+mitigations:
+  - Graph-level detection rather than account-level thresholds
+  - Throughput-versus-balance-retention scoring
+  - Cross-institution mule intelligence sharing
+status: established
+severity: 4
+scalability: 5
+detectability: 4
+simulated: true
+injector: upi_mule_farm
+---
+id: VY-UPI-008
+name: Dormant-account reactivation for laundering capacity
+summary: >-
+  Rather than opening new accounts that carry new-account risk flags, operators buy access
+  to long-dormant genuine accounts with clean history, which score well on tenure-based
+  features and pass most velocity baselines on first use.
+rails: [upi_p2p, imps, neft]
+genai_enablers: [persona_synthesis, agentic_automation]
+surfaces: [chat_app, social_media]
+monetization: [mule_transfer, cash_out]
+kill_chain:
+  - phase: recon
+    description: Recruit holders of dormant accounts through messaging platforms with rental offers.
+    genai_used: true
+  - phase: resource_dev
+    description: Reactivate the account and re-bind the device and mobile number.
+    genai_used: false
+  - phase: evasion
+    description: Exploit the account's long tenure to bypass new-account risk controls.
+    genai_used: false
+  - phase: launder
+    description: Move proceeds through the aged account.
+    genai_used: false
+observables:
+  - dormancy_period_ends_with_high_value_activity
+  - device_rebinding_precedes_throughput_spike
+  - tenure_high_but_behavioural_history_sparse
+  - counterparty_set_entirely_novel
+mitigations:
+  - Treat behavioural history depth, not account age, as the tenure feature
+  - Re-KYC triggers on reactivation after extended dormancy
+status: emerging
+severity: 3
+scalability: 4
+detectability: 5
+simulated: true
+injector: upi_dormant_reactivation
+---
+id: VY-UPI-009
+name: Deepfake video-KYC onboarding
+summary: >-
+  Real-time face swap and injected virtual-camera streams defeat video-KYC liveness checks,
+  onboarding fully synthetic or stolen identities into accounts that become high-trust
+  laundering endpoints.
+rails: [upi_p2p, imps, wallet_ppi]
+genai_enablers: [deepfake_video, doc_forgery, persona_synthesis, voice_clone]
+surfaces: [video_kyc, mobile_app]
+monetization: [mule_transfer, cash_out, credit_bustout]
+kill_chain:
+  - phase: resource_dev
+    description: Construct a synthetic identity with forged documents and a matching generated face.
+    genai_used: true
+  - phase: credential_access
+    description: Inject a real-time deepfake stream through a virtual camera to pass liveness and face-match.
+    genai_used: true
+  - phase: persist
+    description: Operate the account normally for a grooming period to build behavioural history.
+    genai_used: false
+  - phase: launder
+    description: Use the aged, KYC-verified account as a high-trust laundering endpoint.
+    genai_used: false
+observables:
+  - kyc_liveness_confidence_borderline
+  - virtual_camera_or_emulator_signals
+  - identity_attributes_never_seen_in_bureau
+  - onboarding_device_shared_across_identities
+  - grooming_period_then_throughput_spike
+mitigations:
+  - Injection-attack detection distinct from presentation-attack detection
+  - Device-sharing graphs across onboarding sessions
+  - Bureau thin-file cross-checks at onboarding
+status: emerging
+severity: 5
+scalability: 4
+detectability: 5
+simulated: false

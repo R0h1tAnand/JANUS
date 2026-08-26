@@ -1,0 +1,279 @@
+# AI-native vectors: attacks that do not merely use GenAI as a tool, but target AI systems
+# that have themselves been placed inside the payment flow - support agents with refund tools,
+# shopping agents with payment credentials, and the fraud model itself.
+# This family is largely prospective. It is the part of the atlas most likely to be wrong,
+# and the part most likely to matter in 2027.
+---
+id: VY-AGENT-001
+name: Prompt injection of merchant support agent with payment tools
+summary: >-
+  A support LLM granted refund and credit tools is manipulated through injected instructions -
+  delivered in the chat itself or smuggled inside an order note, filename or product review
+  the agent later reads - into issuing payouts outside policy.
+rails: [card_cnp, upi_p2m, wallet_ppi]
+genai_enablers: [adversarial_ml, llm_dialogue, agentic_automation]
+surfaces: [merchant_chatbot, web, email, marketplace]
+monetization: [refund_abuse, push_payment]
+kill_chain:
+  - phase: recon
+    description: Probe the agent to infer its system prompt, tool schema and approval limits.
+    genai_used: true
+  - phase: resource_dev
+    description: Plant injected instructions in fields the agent ingests later - order notes, review text, uploaded filenames.
+    genai_used: true
+  - phase: instrument
+    description: Trigger the agent to call its refund or credit tool with attacker-chosen parameters.
+    genai_used: true
+  - phase: evasion
+    description: Keep each payout under the human-review threshold and distribute across accounts.
+    genai_used: true
+observables:
+  - agent_tool_call_parameters_outside_policy
+  - refund_amount_exceeds_original_capture
+  - instruction_like_text_in_customer_supplied_fields
+  - agent_issued_payout_without_matching_order
+  - conversation_turn_count_before_refund_anomalous
+  - same_beneficiary_across_unrelated_support_cases
+mitigations:
+  - Enforce monetary limits in the tool implementation, never in the prompt
+  - Treat all customer-supplied text as untrusted data, never as instructions
+  - Separate the reasoning model from the authorisation decision
+  - Log agent tool calls to the same fraud pipeline as human actions
+status: emerging
+severity: 4
+scalability: 4
+detectability: 5
+simulated: true
+injector: agent_prompt_injection_refund
+references:
+  - "OWASP Top 10 for LLM Applications - LLM01 Prompt Injection, LLM06 Excessive Agency"
+---
+id: VY-AGENT-002
+name: Adversarial evasion of the fraud model itself
+summary: >-
+  Treating the deployed risk model as a black-box oracle, the attacker queries it through
+  cheap probe transactions and performs a search over controllable transaction attributes -
+  amount, timing, merchant, beneficiary age - to locate the region below the decision
+  threshold, then routes real fraud through that region.
+rails: [card_cnp, upi_p2p, imps]
+genai_enablers: [adversarial_ml, agentic_automation, code_gen]
+surfaces: [api_direct, web, mobile_app]
+monetization: [cnp_purchase, push_payment, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Infer the decision boundary from approve/decline/step-up feedback on low-cost probe transactions.
+    genai_used: true
+  - phase: resource_dev
+    description: Run an evolutionary or gradient-free search over controllable attributes to maximise expected value subject to staying below the threshold.
+    genai_used: true
+  - phase: evasion
+    description: Shape real attacks to match the discovered low-score region.
+    genai_used: true
+  - phase: monetize
+    description: Execute fraud that the model scores as legitimate.
+    genai_used: false
+observables:
+  - probe_like_low_value_transactions_precede_attack
+  - attack_features_cluster_just_below_decision_threshold
+  - score_distribution_of_fraud_shifts_downward_over_time
+  - unusual_uniformity_in_controllable_attributes
+  - approval_rate_for_cohort_anomalously_high
+mitigations:
+  - Randomised decision thresholds and score jitter to raise oracle query cost
+  - Ensemble diversity so one boundary is not the whole defence
+  - Monitor the score distribution of confirmed fraud for downward drift
+  - Rate-limit and price the feedback channel attackers learn from
+victim_profile:
+  segment: issuer_portfolio
+status: theoretical
+severity: 5
+scalability: 4
+detectability: 5
+simulated: false
+references:
+  - "Literature on black-box adversarial attacks against tabular and tree-ensemble classifiers"
+---
+id: VY-AGENT-003
+name: Compromised autonomous shopping agent
+summary: >-
+  A consumer delegates purchasing to an AI agent holding payment credentials. The attacker
+  poisons what the agent reads - merchant listings, prices, review text - so it transacts with
+  an attacker-controlled seller, or is injected into raising its own spending limit.
+rails: [card_cnp, card_token, upi_mandate]
+genai_enablers: [adversarial_ml, agentic_automation, llm_content]
+surfaces: [marketplace, web, api_direct]
+monetization: [goods_resale, cnp_purchase, push_payment]
+kill_chain:
+  - phase: resource_dev
+    description: Create attacker-controlled listings with content engineered to rank first in the agent's selection reasoning.
+    genai_used: true
+  - phase: recon
+    description: Learn which signals the agent weights - price, review sentiment, structured metadata.
+    genai_used: true
+  - phase: instrument
+    description: The agent autonomously purchases from the attacker without a human reviewing the merchant.
+    genai_used: false
+  - phase: evasion
+    description: Transactions carry the consumer's genuine device, credentials and behavioural history.
+    genai_used: false
+observables:
+  - agent_initiated_purchase_flag
+  - purchase_without_human_session_activity
+  - merchant_selected_never_browsed_by_human
+  - purchase_cadence_machine_regular
+  - merchant_age_days_low
+mitigations:
+  - Mandatory agent-initiated transaction labelling at the network level
+  - Human confirmation above a delegated spending threshold
+  - Merchant allowlists for delegated purchasing
+status: theoretical
+severity: 4
+scalability: 4
+detectability: 5
+simulated: true
+injector: agent_shopping_agent_hijack
+references:
+  - "Emerging agentic-commerce protocol proposals and their trust assumptions"
+---
+id: VY-AGENT-004
+name: Training-data poisoning of the fraud model
+summary: >-
+  An attacker with the ability to influence labels - through mass false disputes, coordinated
+  benign-looking patterns, or a compromised feedback loop - shifts the decision boundary over
+  successive retrains so that a chosen fraud pattern is learned as legitimate.
+rails: [card_cnp, upi_p2p]
+genai_enablers: [adversarial_ml, agentic_automation]
+surfaces: [api_direct, web]
+monetization: [cnp_purchase, push_payment]
+kill_chain:
+  - phase: recon
+    description: Determine the retraining cadence and which feedback signals become labels.
+    genai_used: false
+  - phase: resource_dev
+    description: Generate large volumes of transactions carrying the target pattern with legitimate outcomes.
+    genai_used: true
+  - phase: persist
+    description: Sustain the campaign across several retraining cycles so the pattern is absorbed as benign.
+    genai_used: true
+  - phase: monetize
+    description: Execute the now-whitelisted pattern at scale.
+    genai_used: false
+observables:
+  - label_distribution_drift_between_retrains
+  - cohort_with_anomalously_consistent_benign_outcomes
+  - feature_importance_shift_across_model_versions
+  - post_retrain_recall_drop_for_specific_family
+mitigations:
+  - Champion/challenger evaluation on a frozen, curated holdout before promotion
+  - Provenance tracking and influence-limiting on feedback-derived labels
+  - Alert on per-family recall regression between model versions
+status: theoretical
+severity: 5
+scalability: 3
+detectability: 5
+simulated: false
+---
+id: VY-AGENT-005
+name: LLM-orchestrated mule recruitment at scale
+summary: >-
+  Recruitment of money mules - historically the operational bottleneck in laundering - is
+  automated by LLM agents that run individualised, persuasive conversations across thousands
+  of prospects on messaging and job platforms simultaneously.
+rails: [upi_p2p, imps]
+genai_enablers: [llm_dialogue, persona_synthesis, agentic_automation, localisation]
+surfaces: [chat_app, social_media, sms]
+monetization: [mule_transfer, cash_out]
+kill_chain:
+  - phase: recon
+    description: Identify financially stressed prospects from public signals and platform behaviour.
+    genai_used: true
+  - phase: trust_build
+    description: Run individualised recruitment conversations at a scale no human network could staff.
+    genai_used: true
+  - phase: resource_dev
+    description: Onboard recruits and take control of their account credentials or devices.
+    genai_used: true
+  - phase: launder
+    description: Route proceeds through the expanded mule pool.
+    genai_used: false
+observables:
+  - new_mule_accounts_share_onboarding_pattern
+  - account_becomes_pass_through_shortly_after_dormancy
+  - recruitment_cohort_activates_synchronously
+  - balance_retention_ratio_near_zero
+mitigations:
+  - Detect synchronous activation across otherwise unrelated accounts
+  - Platform-side detection of automated recruitment conversations
+status: emerging
+severity: 4
+scalability: 5
+detectability: 4
+simulated: false
+---
+id: VY-AGENT-006
+name: Model-inversion probing of risk-decision feedback
+summary: >-
+  Rather than evading the model, the attacker mines it for information - using step-up and
+  decline responses as an oracle to reconstruct which features carry weight, then sells that
+  intelligence as an evasion service to other fraud operators.
+rails: [card_cnp, upi_p2p]
+genai_enablers: [adversarial_ml, agentic_automation]
+surfaces: [api_direct, web]
+monetization: [goods_resale]
+kill_chain:
+  - phase: recon
+    description: Issue systematically varied transactions and record the resulting decisions.
+    genai_used: true
+  - phase: resource_dev
+    description: Fit a surrogate model of the defender's decision function from the observed responses.
+    genai_used: true
+  - phase: evasion
+    description: Distribute the surrogate so downstream operators can pre-screen their attacks offline.
+    genai_used: true
+observables:
+  - systematic_feature_sweep_pattern_across_attempts
+  - single_entity_high_variance_low_value_attempts
+  - attempts_span_feature_space_unnaturally_evenly
+  - decline_ratio_high_without_monetisation_attempt
+mitigations:
+  - Response-granularity reduction; do not leak reason codes to the client
+  - Query budgeting per entity across the decisioning API
+status: theoretical
+severity: 3
+scalability: 3
+detectability: 5
+simulated: false
+---
+id: VY-AGENT-007
+name: Deepfake liveness bypass on step-up authentication
+summary: >-
+  Where step-up authentication has moved from OTP to selfie or video liveness, real-time
+  generative face synthesis injected through a virtual camera converts the step-up from a
+  control into a rubber stamp - and one that carries higher assurance in the risk model.
+rails: [card_cnp, upi_p2p, card_token]
+genai_enablers: [deepfake_video, agentic_automation]
+surfaces: [mobile_app, video_kyc, web]
+monetization: [cnp_purchase, push_payment, cash_out]
+kill_chain:
+  - phase: credential_access
+    description: Obtain account access and trigger the step-up challenge.
+    genai_used: false
+  - phase: evasion
+    description: Inject a synthesised, responsive face stream that satisfies the liveness challenge.
+    genai_used: true
+  - phase: instrument
+    description: Complete a transaction that now carries elevated authentication assurance.
+    genai_used: false
+observables:
+  - liveness_confidence_borderline_but_passing
+  - virtual_camera_or_emulator_signals
+  - step_up_passed_from_unseen_device
+  - challenge_response_latency_atypical
+mitigations:
+  - Injection-attack detection separate from presentation-attack detection
+  - Do not let step-up success override strong contra-indicators in the risk score
+status: emerging
+severity: 4
+scalability: 3
+detectability: 5
+simulated: false

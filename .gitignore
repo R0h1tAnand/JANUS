@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Regenerable and/or large. Reports are NOT ignored: they are the evidence behind
+# RESULTS.md, they are a few kilobytes, and a reader should be able to check a claim
+# without first spending fifteen minutes rebuilding the pipeline.
+# public reference datasets, ~750 MB, fetched by scripts/fetch_reference_data.py
+data/raw/
+# generated payment events, ~25 MB, reproducible from a seed
+data/synthetic/
+data/cache/
+# trained bundles, ~60 MB
+models/
+reports/*.html
+reports/*.png
+
+# Committed on purpose - the Tier-1 LLM corpus is part of the repo
+!data/llm_corpus/
+!data/llm_corpus/**
+
+# Node
+web/node_modules/
+web/dist/
+web/.vite/
+web/.next/
+web/out/
+web/.env*.local
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Local working notes, not part of the deliverable
+CLAUDE.md

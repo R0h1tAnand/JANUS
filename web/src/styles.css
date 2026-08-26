@@ -1,0 +1,297 @@
+/* ==========================================================================
+   Janus console tokens.
+
+   The palette encodes the subject rather than decorating it. Red and blue are
+   not accents chosen for contrast - they are the two teams, used only for
+   attack and defence respectively. Marigold is reserved exclusively for money
+   at risk, so a rupee figure never has to compete with a status colour for
+   the reader's attention.
+
+   The ground is a deep indigo rather than black. Payment operations rooms run
+   dark, but pure black plus one bright accent is the reflexive choice; indigo
+   holds the red and blue apart without either one screaming.
+   ========================================================================== */
+:root {
+  --ink:        #0B0F1A;
+  --surface:    #131829;
+  --surface-2:  #1A2036;
+  --surface-3:  #222A44;
+  --line:       #2A3350;
+  --line-soft:  #1E2640;
+
+  --text:       #E9E7E2;
+  --text-dim:   #8C94AE;
+  --text-faint: #5C6484;
+
+  --red:        #D6453F;   /* red team: attack, blocked */
+  --red-dim:    #7A2A29;
+  --blue:       #5B7CFA;   /* blue team: defence, detected */
+  --blue-dim:   #2C3C7E;
+  --marigold:   #E8A33D;   /* money at risk. nothing else. */
+  --jade:       #3FB98C;   /* allowed, healthy */
+  --violet:     #9A7BE8;   /* novelty / unknown */
+
+  --display: 'Chivo', system-ui, sans-serif;
+  --body: 'IBM Plex Sans', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --r: 3px;
+  --pad: 18px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Faint grid, like a plotting surface. Very low contrast on purpose - it should
+   register as texture, never as lines you can count. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 64px 64px;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+
+h1, h2, h3 { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+h1 { font-size: 28px; }
+h2 { font-size: 17px; letter-spacing: -0.01em; }
+h3 { font-size: 13px; font-weight: 700; }
+
+a { color: var(--blue); }
+
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* --- app shell ---------------------------------------------------------- */
+.app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100%; }
+
+.masthead {
+  display: flex; align-items: baseline; gap: 14px;
+  padding: 16px 24px 12px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.wordmark { font-family: var(--display); font-weight: 900; font-size: 19px; letter-spacing: -0.03em; }
+.wordmark span { color: var(--red); }
+.tagline { color: var(--text-faint); font-size: 12px; }
+.masthead .spacer { flex: 1; }
+
+.status-pip {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+}
+.status-pip i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--jade); display: inline-block;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--jade) 18%, transparent);
+}
+.status-pip.down i { background: var(--red); box-shadow: 0 0 0 3px color-mix(in srgb, var(--red) 18%, transparent); }
+
+/* --- the loop: navigation that is also the thesis ----------------------- */
+.loop {
+  display: flex; align-items: stretch; gap: 0;
+  padding: 0 24px; border-bottom: 1px solid var(--line-soft);
+  overflow-x: auto;
+}
+.loop-stage {
+  position: relative;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 12px 26px 11px 18px;
+  background: none; border: 0; border-bottom: 2px solid transparent;
+  color: var(--text-faint); cursor: pointer; text-align: left;
+  font-family: var(--body); font-size: 13px;
+  white-space: nowrap;
+  transition: color .16s ease, border-color .16s ease;
+}
+.loop-stage:hover { color: var(--text-dim); }
+.loop-stage[aria-current='true'] { color: var(--text); border-bottom-color: var(--accent, var(--blue)); }
+.loop-stage .k { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.loop-stage .v { font-family: var(--display); font-weight: 700; font-size: 14px; }
+/* The chevron between stages, and the wrap-around marker after the last one.
+   The cycle closing is the whole argument, so it gets drawn rather than implied. */
+.loop-stage:not(:last-child)::after {
+  content: ''; position: absolute; right: 8px; top: 50%;
+  width: 6px; height: 6px; margin-top: -3px;
+  border-top: 1px solid var(--line); border-right: 1px solid var(--line);
+  transform: rotate(45deg);
+}
+.loop-wrap {
+  display: flex; align-items: center; gap: 6px;
+  padding-left: 14px; margin-left: 4px;
+  border-left: 1px dashed var(--line);
+  color: var(--text-faint); font-family: var(--mono); font-size: 10px;
+  letter-spacing: .12em; text-transform: uppercase;
+}
+.loop-wrap svg { flex-shrink: 0; }
+
+main { flex: 1; padding: 22px 24px 40px; }
+
+/* --- panels ------------------------------------------------------------- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+}
+.panel-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.panel-head .spacer { flex: 1; }
+.panel-body { padding: 14px; }
+.panel-body.flush { padding: 0; }
+
+.grid { display: grid; gap: 14px; }
+.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+/* --- stat ---------------------------------------------------------------- */
+.stat .n {
+  font-family: var(--display); font-weight: 800; font-size: 30px;
+  letter-spacing: -0.03em; line-height: 1.05; font-variant-numeric: tabular-nums;
+}
+.stat .n.money { color: var(--marigold); }
+.stat .n.blue { color: var(--blue); }
+.stat .n.red  { color: var(--red); }
+.stat .sub { color: var(--text-faint); font-size: 12px; margin-top: 3px; }
+
+/* --- tables -------------------------------------------------------------- */
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th {
+  text-align: left; font-family: var(--mono); font-weight: 500;
+  font-size: 10px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--text-faint); padding: 8px 12px;
+  border-bottom: 1px solid var(--line-soft); position: sticky; top: 0;
+  background: var(--surface);
+}
+td { padding: 7px 12px; border-bottom: 1px solid var(--line-soft); }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.scroll { overflow: auto; }
+.scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 5px; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* --- action chips -------------------------------------------------------- */
+.chip {
+  display: inline-block; padding: 1px 7px; border-radius: 2px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .06em;
+  text-transform: uppercase; border: 1px solid;
+}
+.chip.allow   { color: var(--text-faint); border-color: var(--line); }
+.chip.step_up { color: var(--marigold); border-color: color-mix(in srgb, var(--marigold) 40%, transparent); }
+.chip.hold    { color: var(--violet);   border-color: color-mix(in srgb, var(--violet) 45%, transparent); }
+.chip.block   { color: var(--red);      border-color: color-mix(in srgb, var(--red) 50%, transparent);
+                background: color-mix(in srgb, var(--red) 10%, transparent); }
+
+.tag {
+  display: inline-block; padding: 1px 6px; border-radius: 2px;
+  font-family: var(--mono); font-size: 10px;
+  background: var(--surface-2); color: var(--text-dim); border: 1px solid var(--line-soft);
+}
+.tag.sim { color: var(--blue); border-color: var(--blue-dim); }
+
+/* --- stream -------------------------------------------------------------- */
+.stream-row {
+  display: grid;
+  grid-template-columns: 74px 92px 1fr 96px 64px 74px;
+  gap: 10px; align-items: center;
+  padding: 6px 12px; border-bottom: 1px solid var(--line-soft);
+  font-size: 12px;
+  animation: slide-in .22s ease-out;
+}
+@keyframes slide-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .stream-row { animation: none; } }
+.stream-row.flag { background: color-mix(in srgb, var(--red) 6%, transparent); }
+.stream-row .payee { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Score cell: a filled track plus the number. See components/Score.jsx for why the track is
+   drawn on a square-root scale. */
+.score-cell { display: grid; grid-template-columns: 1fr 52px; gap: 9px; align-items: center; }
+.score { position: relative; height: 4px; background: var(--surface-3); border-radius: 2px; }
+.score i {
+  position: absolute; inset: 0 auto 0 0; border-radius: 2px; background: var(--blue);
+  min-width: 2px;
+}
+.score i.hot { background: var(--red); }
+.score-num { font-size: 11px; color: var(--text-faint); text-align: right; }
+
+/* --- kill-chain matrix: the signature -------------------------------------
+   Each column is a kill-chain phase; the bar beneath it is the share of steps
+   in that phase that GenAI materially enables. The gradient across the row is
+   the project's central finding, so it is drawn once, large, and not repeated
+   elsewhere. */
+/* The matrix is the signature view and the tallest column carries 39 techniques, so it is
+   capped and scrolled rather than allowed to push the technique browser off the page. The
+   phase headers stay pinned, because the GenAI meter is the argument - losing it while
+   scrolling would lose the point. */
+.matrix { display: flex; gap: 6px; overflow: auto; padding-bottom: 4px; max-height: 56vh; }
+.mx-col { min-width: 124px; flex: 1; }
+.mx-head {
+  padding: 0 0 8px; position: sticky; top: 0; z-index: 2;
+  background: var(--surface); box-shadow: 0 6px 8px -6px var(--surface);
+}
+.mx-phase { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); }
+.mx-meter { height: 3px; background: var(--surface-3); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.mx-meter i { display: block; height: 100%; background: var(--red); }
+.mx-pct { font-family: var(--mono); font-size: 10px; color: var(--text-faint); margin-top: 4px; }
+.mx-cell {
+  padding: 3px 6px; margin-bottom: 2px; border-radius: 2px;
+  background: var(--surface-2); border: 1px solid var(--line-soft);
+  font-family: var(--mono); font-size: 10.5px; color: var(--text-dim);
+  cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mx-cell:hover { border-color: var(--blue-dim); color: var(--text); }
+.mx-cell.genai { border-left: 2px solid var(--red); }
+.mx-cell.sim::after { content: '·sim'; color: var(--blue); }
+
+/* --- misc ---------------------------------------------------------------- */
+.note { color: var(--text-faint); font-size: 12px; line-height: 1.55; }
+.note strong { color: var(--text-dim); font-weight: 600; }
+
+button.ctl {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .06em;
+  background: var(--surface-2); color: var(--text-dim);
+  border: 1px solid var(--line); border-radius: 2px;
+  padding: 4px 10px; cursor: pointer;
+}
+button.ctl:hover { color: var(--text); border-color: var(--surface-3); }
+button.ctl[aria-pressed='true'] { color: var(--ink); background: var(--blue); border-color: var(--blue); }
+
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+.empty { padding: 28px 14px; text-align: center; color: var(--text-faint); font-size: 12.5px; }
+
+@media (max-width: 1100px) {
+  .cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cols-3, .cols-2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .cols-4 { grid-template-columns: 1fr; }
+  main { padding: 16px 14px 32px; }
+  .stream-row { grid-template-columns: 64px 1fr 78px; }
+  .stream-row .hide-sm { display: none; }
+}

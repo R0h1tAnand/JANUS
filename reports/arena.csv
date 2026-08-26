@@ -1,0 +1,6 @@
+round,red_evasion_rate,value_through_pct,value_through_lakh,blue_recall,blue_roc_auc,realised_fpr,train_base_rate,n_train_events,adaptation
+1,0.6281,0.8852,795723.4,0.5044,0.9545,0.001,0.00653,181645,amount_scale up (1.00 -> 2.38); delay_scale up (1.00 -> 5.79); burst_scale up (1.00 -> 2.00); novelty_avoid up (0.00 -> 0.52)
+2,0.4761,0.8487,720964.8,0.6643,0.946,0.001,0.00653,226941,amount_scale up (1.00 -> 2.50); delay_scale up (1.00 -> 4.49); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.26); novelty_avoid up (0.00 -> 0.57)
+3,0.5071,0.905,582476.85,0.6208,0.9379,0.001,0.00653,283561,amount_scale up (1.00 -> 1.73); delay_scale up (1.00 -> 6.52); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.99); novelty_avoid up (0.00 -> 0.71)
+4,0.4744,0.7301,575656.35,0.6412,0.952,0.001,0.00653,354412,amount_scale up (1.00 -> 1.27); delay_scale up (1.00 -> 6.42); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.46); novelty_avoid up (0.00 -> 0.23); hour_blend up (0.00 -> 1.00)
+5,0.5856,0.3228,112476.1,0.5728,0.9424,0.001,0.00653,443015,amount_scale up (1.00 -> 1.37); delay_scale up (1.00 -> 9.61); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.70); novelty_avoid up (0.00 -> 0.21); hour_blend up (0.00 -> 0.47)

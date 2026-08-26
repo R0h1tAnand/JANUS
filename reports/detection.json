@@ -1,0 +1,144 @@
+{
+  "metrics": {
+    "n": 215524,
+    "n_fraud": 1348,
+    "base_rate": 0.00625,
+    "roc_auc": 0.9945,
+    "pr_auc": 0.9106,
+    "recall@fpr0.0005": 0.8835,
+    "realised_fpr@0.0005": 0.0005,
+    "precision@fpr0.0005": 0.9176,
+    "f1@fpr0.0005": 0.9002,
+    "recall@fpr0.001": 0.888,
+    "realised_fpr@0.001": 0.001,
+    "precision@fpr0.001": 0.8483,
+    "f1@fpr0.001": 0.8677,
+    "recall@fpr0.005": 0.9028,
+    "realised_fpr@0.005": 0.005,
+    "precision@fpr0.005": 0.5321,
+    "f1@fpr0.005": 0.6696,
+    "recall@fpr0.01": 0.9088,
+    "realised_fpr@0.01": 0.01,
+    "precision@fpr0.01": 0.3639,
+    "f1@fpr0.01": 0.5197,
+    "recall@0.5": 0.8694,
+    "precision@0.5": 0.9775
+  },
+  "novelty_auc": 0.769,
+  "per_family_recall": {
+    "VY-AGENT-001": 1.0,
+    "VY-AGENT-003": 1.0,
+    "VY-CARD-002": 1.0,
+    "VY-CARD-003": 0.9524,
+    "VY-CARD-004": 1.0,
+    "VY-CARD-009": 0.0,
+    "VY-IDENT-001": 1.0,
+    "VY-LAUND-001": 0.9632,
+    "VY-LAUND-002": 0.9365,
+    "VY-SOC-001": 0.8485,
+    "VY-SOC-002": 1.0,
+    "VY-SOC-003": 1.0,
+    "VY-SOC-004": 1.0,
+    "VY-SOC-008": 0.3333,
+    "VY-UPI-001": 1.0,
+    "VY-UPI-002": 1.0,
+    "VY-UPI-003": 1.0,
+    "VY-UPI-005": 1.0,
+    "VY-UPI-007": 0.9149,
+    "VY-UPI-008": 1.0
+  },
+  "best_policy": {
+    "step_up": 0.15,
+    "hold": 0.195,
+    "block": 0.27,
+    "fraud_exposure": 21292416.34,
+    "fraud_prevented": 17835900.4,
+    "prevention_rate": 0.8377,
+    "friction_cost": 80436.0,
+    "net_benefit": 17755464.4,
+    "legit_challenged_rate": 0.00846,
+    "within_friction_budget": 1.0
+  },
+  "importance": [
+    {
+      "feature": "payee_account_age_days",
+      "importance": 0.07435483870967742
+    },
+    {
+      "feature": "device_age_days",
+      "importance": 0.055120967741935485
+    },
+    {
+      "feature": "log_amount",
+      "importance": 0.05407258064516129
+    },
+    {
+      "feature": "merchant_category_code",
+      "importance": 0.03592741935483871
+    },
+    {
+      "feature": "rail_code",
+      "importance": 0.030403225806451613
+    },
+    {
+      "feature": "hour",
+      "importance": 0.028548387096774194
+    },
+    {
+      "feature": "payer_gap_regularity",
+      "importance": 0.027741935483870966
+    },
+    {
+      "feature": "ip_prior_count",
+      "importance": 0.026975806451612905
+    },
+    {
+      "feature": "device_prior_count",
+      "importance": 0.025524193548387097
+    },
+    {
+      "feature": "hour_deviation_from_personal",
+      "importance": 0.025201612903225805
+    },
+    {
+      "feature": "amount_ratio_to_personal_mean",
+      "importance": 0.025201612903225805
+    },
+    {
+      "feature": "payee_sum_7d",
+      "importance": 0.024717741935483872
+    },
+    {
+      "feature": "beneficiary_age_days",
+      "importance": 0.02411290322580645
+    },
+    {
+      "feature": "payee_balance_retention",
+      "importance": 0.02403225806451613
+    },
+    {
+      "feature": "amount_z_vs_personal",
+      "importance": 0.02342741935483871
+    },
+    {
+      "feature": "payee_prior_count",
+      "importance": 0.023064516129032257
+    },
+    {
+      "feature": "device_seconds_since_prev",
+      "importance": 0.02274193548387097
+    },
+    {
+      "feature": "payee_seconds_since_prev",
+      "importance": 0.02274193548387097
+    },
+    {
+      "feature": "channel_code",
+      "importance": 0.021008064516129032
+    },
+    {
+      "feature": "payer_prior_count",
+      "importance": 0.020604838709677418
+    }
+  ]
+}

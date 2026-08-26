@@ -1,0 +1,275 @@
+# Identity-layer vectors. These attacks do not defeat the payment control - they defeat the
+# question the payment control depends on: "is this the right person?". Once identity is
+# subverted, downstream transaction monitoring inherits a false premise.
+---
+id: VY-IDENT-001
+name: Account takeover via AI-assisted SIM swap
+summary: >-
+  A cloned voice and breached knowledge data are used against telecom retail or support staff
+  to port the victim's number, after which every SMS-based authentication factor and account
+  recovery path belongs to the attacker.
+rails: [upi_p2p, imps, neft, card_cnp]
+genai_enablers: [voice_clone, llm_dialogue, persona_synthesis]
+surfaces: [voice_call, web, mobile_app]
+monetization: [push_payment, cnp_purchase, mule_transfer]
+kill_chain:
+  - phase: recon
+    description: Assemble the victim's identity data, carrier and account relationships.
+    genai_used: false
+  - phase: credential_access
+    description: Social-engineer the port-out using a cloned voice and breached knowledge answers.
+    genai_used: true
+  - phase: instrument
+    description: Reset banking credentials via SMS recovery and register a new device.
+    genai_used: false
+  - phase: monetize
+    description: Sweep balances and open credit before the victim restores service.
+    genai_used: false
+observables:
+  - sim_swap_recently_flagged_for_msisdn
+  - device_rebinding_precedes_throughput_spike
+  - credential_reset_then_immediate_high_value_transfer
+  - full_balance_sweep
+  - inbound_sms_channel_changed_recently
+mitigations:
+  - Consume carrier SIM-swap signals as a hard risk factor at the payment layer
+  - Mandatory cooling-off after device rebinding before high-value transfers
+  - Move away from SMS as a primary authentication factor
+victim_profile:
+  age_bands: ["25-60"]
+  segment: retail
+status: established
+severity: 5
+scalability: 3
+detectability: 3
+simulated: true
+injector: ident_sim_swap_ato
+---
+id: VY-IDENT-002
+name: Generative document forgery for onboarding
+summary: >-
+  Diffusion and layout-aware generation produce identity documents, address proofs, payslips
+  and bank statements that survive OCR-plus-rules verification because they are internally
+  consistent rather than photoshopped from a template.
+rails: [upi_p2p, card_cnp, wallet_ppi]
+genai_enablers: [doc_forgery, persona_synthesis, llm_content]
+surfaces: [web, mobile_app, video_kyc]
+monetization: [mule_transfer, credit_bustout, cash_out]
+kill_chain:
+  - phase: resource_dev
+    description: Generate a mutually consistent document set for a synthetic or stolen identity.
+    genai_used: true
+  - phase: credential_access
+    description: Pass automated document verification during onboarding.
+    genai_used: true
+  - phase: persist
+    description: Hold the account through any probation period with normal-looking activity.
+    genai_used: false
+  - phase: launder
+    description: Deploy the verified account for laundering or credit abuse.
+    genai_used: false
+observables:
+  - document_metadata_anomalies
+  - identity_attributes_never_seen_in_bureau
+  - document_image_generative_artifacts
+  - onboarding_device_shared_across_identities
+  - address_or_device_shared_across_identities
+mitigations:
+  - Generative-artifact and C2PA-provenance checks at document intake
+  - Cross-reference against authoritative sources rather than document self-consistency
+status: emerging
+severity: 4
+scalability: 5
+detectability: 4
+simulated: false
+---
+id: VY-IDENT-003
+name: Credential stuffing with LLM-generated password variants
+summary: >-
+  Instead of replaying breached passwords verbatim, an LLM generates the specific mutations
+  a given user is likely to have made - year increments, site-name substitutions, keyboard
+  shifts - raising hit rate per attempt and lowering the volume needed to succeed.
+rails: [card_cnp, upi_p2p, wallet_ppi]
+genai_enablers: [llm_content, code_gen, agentic_automation]
+surfaces: [web, mobile_app, api_direct]
+monetization: [cnp_purchase, push_payment, subscription_siphon]
+kill_chain:
+  - phase: resource_dev
+    description: Generate per-user candidate password mutations from their breached credentials.
+    genai_used: true
+  - phase: credential_access
+    description: Attempt logins at a volume low enough to avoid lockout but high enough to succeed.
+    genai_used: true
+  - phase: evasion
+    description: Distribute attempts across residential proxies with human-like timing.
+    genai_used: true
+  - phase: monetize
+    description: Drain stored value, saved cards or loyalty balances.
+    genai_used: false
+observables:
+  - login_success_from_unseen_device_and_geo
+  - low_volume_high_success_credential_attempts
+  - stored_value_drain_shortly_after_login
+  - session_behaviour_diverges_from_user_baseline
+mitigations:
+  - Passkey adoption to eliminate the replayable secret
+  - Impossible-travel and device-reputation checks at login, fed into payment risk
+status: emerging
+severity: 3
+scalability: 5
+detectability: 3
+simulated: false
+---
+id: VY-IDENT-004
+name: Synthetic identity cluster farming
+summary: >-
+  Rather than one synthetic identity, operators generate coherent families of them sharing
+  plausible but fabricated relationships, so that cross-referencing checks which look for
+  corroborating links find exactly the corroboration they expect.
+rails: [card_cnp, upi_p2p, wallet_ppi]
+genai_enablers: [persona_synthesis, doc_forgery, llm_content, agentic_automation]
+surfaces: [web, mobile_app]
+monetization: [credit_bustout, mule_transfer]
+kill_chain:
+  - phase: resource_dev
+    description: Generate an interlinked cohort of synthetic identities with mutually corroborating attributes.
+    genai_used: true
+  - phase: credential_access
+    description: Onboard the cohort, using intra-cohort references as corroboration.
+    genai_used: true
+  - phase: persist
+    description: Transact among the cohort to manufacture apparently organic behavioural history.
+    genai_used: true
+  - phase: monetize
+    description: Bust out the cohort together or use it as laundering infrastructure.
+    genai_used: false
+observables:
+  - identity_cluster_shares_attributes_beyond_chance
+  - intra_cohort_transaction_ratio_high
+  - cohort_onboarded_within_narrow_window
+  - address_or_device_shared_across_identities
+  - repayment_behaviour_too_regular
+mitigations:
+  - Graph-based identity resolution across applicants, not per-applicant checks
+  - Treat dense intra-cohort transaction patterns as manufactured history
+status: emerging
+severity: 4
+scalability: 4
+detectability: 5
+simulated: false
+---
+id: VY-IDENT-005
+name: Behavioural-biometric replay and synthesis
+summary: >-
+  Behavioural biometrics - typing cadence, swipe dynamics, device handling - are increasingly
+  used as a passive trust signal. Captured traces can be replayed, or a generative model can
+  synthesise plausible traces for a target profile, converting a silent control into a false
+  positive trust signal.
+rails: [upi_p2p, card_cnp, imps]
+genai_enablers: [adversarial_ml, code_gen, agentic_automation]
+surfaces: [mobile_app, web]
+monetization: [push_payment, cnp_purchase]
+kill_chain:
+  - phase: recon
+    description: Capture genuine behavioural traces via malware or a compromised SDK.
+    genai_used: false
+  - phase: resource_dev
+    description: Train a generator that produces traces matching the victim's behavioural profile.
+    genai_used: true
+  - phase: evasion
+    description: Replay or synthesise traces so the session scores as the genuine user.
+    genai_used: true
+  - phase: instrument
+    description: Execute transfers that inherit the elevated trust of a passing biometric check.
+    genai_used: false
+observables:
+  - behavioural_score_high_but_device_unseen
+  - trace_entropy_lower_than_human_baseline
+  - biometric_pass_conflicts_with_network_signals
+  - interarrival_time_machine_regular
+mitigations:
+  - Liveness and entropy checks on behavioural traces themselves
+  - Never let a passive signal override active contra-indicators
+status: theoretical
+severity: 3
+scalability: 2
+detectability: 5
+simulated: false
+---
+id: VY-IDENT-006
+name: Aadhaar-linked AePS cash-out with cloned biometrics
+summary: >-
+  Fabricated or lifted fingerprint impressions are used with Aadhaar-enabled Payment System
+  micro-ATM terminals to withdraw from accounts of victims who never see a card, an app or
+  an OTP - the attack is fully offline from the victim's perspective.
+rails: [aeps, card_atm]
+genai_enablers: [doc_forgery, agentic_automation]
+surfaces: [api_direct, web]
+monetization: [cash_out]
+kill_chain:
+  - phase: recon
+    description: Harvest Aadhaar numbers and biometric impressions from leaked land-record or service portals.
+    genai_used: false
+  - phase: resource_dev
+    description: Reconstruct usable fingerprint artefacts from the captured impressions.
+    genai_used: true
+  - phase: monetize
+    description: Withdraw small amounts across many victims through agent-operated micro-ATMs.
+    genai_used: false
+  - phase: evasion
+    description: Keep per-victim amounts small enough that many victims never notice or report.
+    genai_used: false
+observables:
+  - aeps_withdrawal_without_prior_aeps_history
+  - withdrawals_cluster_at_single_agent_terminal
+  - victim_geo_far_from_terminal_geo
+  - many_unrelated_victims_single_operator
+mitigations:
+  - Agent-terminal level anomaly monitoring across victim dispersion
+  - Customer opt-in requirement for AePS debit
+  - Biometric liveness at the micro-ATM
+victim_profile:
+  segment: retail
+  notes: Concentrated among rural customers with low balances and low reporting propensity.
+status: established
+severity: 3
+scalability: 3
+detectability: 3
+simulated: false
+---
+id: VY-IDENT-007
+name: Insider-assisted identity substitution
+summary: >-
+  An LLM lowers the skill floor for an insider at an onboarding or servicing desk to produce
+  internally consistent supporting documentation and case notes, letting an attacker-controlled
+  identity be substituted onto a genuine, aged customer record.
+rails: [upi_p2p, imps, card_cnp]
+genai_enablers: [doc_forgery, llm_content]
+surfaces: [web, api_direct]
+monetization: [mule_transfer, cash_out, credit_bustout]
+kill_chain:
+  - phase: resource_dev
+    description: Generate consistent servicing documentation and justification notes for the record change.
+    genai_used: true
+  - phase: credential_access
+    description: Insider updates contact details and device bindings on an aged genuine record.
+    genai_used: false
+  - phase: evasion
+    description: The account retains its long tenure and clean history, scoring as low risk.
+    genai_used: false
+  - phase: launder
+    description: Use the high-trust account for laundering or credit extraction.
+    genai_used: false
+observables:
+  - servicing_change_outside_customer_session
+  - staff_id_associated_with_multiple_flagged_records
+  - contact_detail_change_precedes_beneficiary_add
+  - tenure_high_but_behavioural_history_sparse
+mitigations:
+  - Four-eyes approval on servicing changes to dormant or high-value records
+  - Staff-level anomaly monitoring across downstream fraud outcomes
+status: emerging
+severity: 4
+scalability: 2
+detectability: 5
+simulated: false

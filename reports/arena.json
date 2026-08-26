@@ -1,0 +1,117 @@
+{
+  "summary": {
+    "rounds": 5,
+    "evasion_first": 0.6281,
+    "evasion_last": 0.5856,
+    "evasion_reduction": 0.0425,
+    "value_through_first_pct": 0.8852,
+    "value_through_last_pct": 0.3228,
+    "recall_first": 0.5044,
+    "recall_last": 0.5728,
+    "fpr_drift": 0.0,
+    "base_rate_first": 0.00653,
+    "base_rate_last": 0.00653
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "red_evasion_rate": 0.6281188404403635,
+      "red_value_through": 79572339919.2515,
+      "red_value_total": 89889796394.35983,
+      "blue_recall_at_fpr": 0.5044404973357016,
+      "blue_roc_auc": 0.9545,
+      "realised_fpr": 0.000999341216404828,
+      "train_base_rate": 0.006534724324919486,
+      "n_train_events": 181645,
+      "best_params": {
+        "amount_scale": 2.384965619245595,
+        "delay_scale": 5.787635152541081,
+        "burst_scale": 2.0,
+        "mule_age_pref": 0.0,
+        "novelty_avoid": 0.5216249195209502,
+        "hour_blend": 0.0
+      },
+      "param_summary": "amount_scale up (1.00 -> 2.38); delay_scale up (1.00 -> 5.79); burst_scale up (1.00 -> 2.00); novelty_avoid up (0.00 -> 0.52)"
+    },
+    {
+      "round": 2,
+      "red_evasion_rate": 0.4761130505475587,
+      "red_value_through": 72096479930.4054,
+      "red_value_total": 84953875976.57198,
+      "blue_recall_at_fpr": 0.6642984014209592,
+      "blue_roc_auc": 0.946,
+      "realised_fpr": 0.000999341216404828,
+      "train_base_rate": 0.006534738103736213,
+      "n_train_events": 226941,
+      "best_params": {
+        "amount_scale": 2.5,
+        "delay_scale": 4.48670173877036,
+        "burst_scale": 2.0,
+        "mule_age_pref": 0.2638792748806916,
+        "novelty_avoid": 0.5672582715675069,
+        "hour_blend": 0.0
+      },
+      "param_summary": "amount_scale up (1.00 -> 2.50); delay_scale up (1.00 -> 4.49); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.26); novelty_avoid up (0.00 -> 0.57)"
+    },
+    {
+      "round": 3,
+      "red_evasion_rate": 0.5070952862824465,
+      "red_value_through": 58247684867.422676,
+      "red_value_total": 64363812373.12198,
+      "blue_recall_at_fpr": 0.6207815275310835,
+      "blue_roc_auc": 0.9379,
+      "realised_fpr": 0.000999341216404828,
+      "train_base_rate": 0.006534749136870021,
+      "n_train_events": 283561,
+      "best_params": {
+        "amount_scale": 1.7336065015271358,
+        "delay_scale": 6.521177887312238,
+        "burst_scale": 2.0,
+        "mule_age_pref": 0.9853167541257505,
+        "novelty_avoid": 0.7140021441892066,
+        "hour_blend": 0.0145577314220902
+      },
+      "param_summary": "amount_scale up (1.00 -> 1.73); delay_scale up (1.00 -> 6.52); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.99); novelty_avoid up (0.00 -> 0.71)"
+    },
+    {
+      "round": 4,
+      "red_evasion_rate": 0.4744087297963656,
+      "red_value_through": 57565635182.05708,
+      "red_value_total": 78847132595.97433,
+      "blue_recall_at_fpr": 0.6412078152753108,
+      "blue_roc_auc": 0.952,
+      "realised_fpr": 0.000999341216404828,
+      "train_base_rate": 0.006534767445797546,
+      "n_train_events": 354412,
+      "best_params": {
+        "amount_scale": 1.2678436543340967,
+        "delay_scale": 6.423490370743724,
+        "burst_scale": 2.0,
+        "mule_age_pref": 0.45901749723022744,
+        "novelty_avoid": 0.22868643346604153,
+        "hour_blend": 1.0
+      },
+      "param_summary": "amount_scale up (1.00 -> 1.27); delay_scale up (1.00 -> 6.42); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.46); novelty_avoid up (0.00 -> 0.23); hour_blend up (0.00 -> 1.00)"
+    },
+    {
+      "round": 5,
+      "red_evasion_rate": 0.5855808173784978,
+      "red_value_through": 11247609977.752777,
+      "red_value_total": 34845150775.943504,
+      "blue_recall_at_fpr": 0.5728241563055062,
+      "blue_roc_auc": 0.9424,
+      "realised_fpr": 0.000999341216404828,
+      "train_base_rate": 0.006534767445797546,
+      "n_train_events": 443015,
+      "best_params": {
+        "amount_scale": 1.3737179387702563,
+        "delay_scale": 9.605776051907078,
+        "burst_scale": 2.0,
+        "mule_age_pref": 0.6981099402210555,
+        "novelty_avoid": 0.21238985512299285,
+        "hour_blend": 0.47105988081002614
+      },
+      "param_summary": "amount_scale up (1.00 -> 1.37); delay_scale up (1.00 -> 9.61); burst_scale up (1.00 -> 2.00); mule_age_pref up (0.00 -> 0.70); novelty_avoid up (0.00 -> 0.21); hour_blend up (0.00 -> 0.47)"
+    }
+  ]
+}
