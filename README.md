@@ -72,9 +72,9 @@ The headline is deliberately the uncomfortable one:
 
 | | |
 |---|---|
-| Recall @ 0.1% FPR, families the model **has** seen | **89.1%** |
-| Recall on families it has **never** seen (leave-one-attack-out) | **15.9%** |
-| Generalisation gap | **+37.4 points** |
+| Recall @ 0.1% FPR, families the model **has** seen | **88.8%** |
+| Recall on families it has **never** seen (leave-one-attack-out) | **17.4%** |
+| Generalisation gap | **+42.8 points** |
 | Families above 50% recall when unseen | **2 of 21** |
 | Families below 20% | **15 of 21** |
 
@@ -82,8 +82,8 @@ The headline is deliberately the uncomfortable one:
 the actual finding, and it is why this repo also ships an unsupervised novelty layer and an
 adversarial loop rather than stopping at a classifier and a good-looking AUC.
 
-The two families that *do* generalise are instructive. SIM-swap account takeover (0.91) and
-dormant-account reactivation (0.86) both have **compositional** signatures — device rebinding
+The two families that *do* generalise are instructive. SIM-swap account takeover (0.95) and
+dormant-account reactivation both have **compositional** signatures — device rebinding
 followed by a rapid sweep, sudden throughput on an account with long tenure but thin recent
 history — assembled from signals other attack families already teach. The fifteen that fail
 have idiosyncratic signatures nothing else in the atlas covers. That is a concrete design

@@ -1,6 +1,6 @@
 # Results
 
-*Generated from `reports/` on 2026-08-26 20:09 UTC by `scripts/build_results.py`. Every number here is read from an artefact in this repository — regenerate with `make all`.*
+*Generated from `reports/` on 2026-08-26 20:26 UTC by `scripts/build_results.py`. Every number here is read from an artefact in this repository — regenerate with `make all`.*
 
 ## Pillar 1 — Identify
 
@@ -86,32 +86,32 @@ The unconstrained economic optimum challenges ~16% of legitimate payments. It is
 
 For each of the 20 simulated families, a detector is trained on a world where **that family does not exist**, then tested against a different world where it does. Training and test worlds use different seeds, so the held-out attack is unseen in the strongest sense available.
 
-- Mean recall on unseen families: **15.9%**
-- Mean recall on families it *has* seen: 53.2%
-- **Generalisation gap: 37.3%**
+- Mean recall on unseen families: **17.4%**
+- Mean recall on families it *has* seen: 60.5%
+- **Generalisation gap: 43.1%**
 - Families above 50% recall: **2/20**
 
 | held-out technique | recall (never trained on) |
 |---|---|
-| VY-IDENT-001 | 90.9% |
-| VY-UPI-008 | 86.2% |
-| VY-LAUND-002 | 40.0% |
-| VY-UPI-002 | 24.2% |
-| VY-CARD-002 | 21.7% |
-| VY-SOC-001 | 19.0% |
-| VY-SOC-003 | 16.0% |
-| VY-UPI-007 | 7.4% |
-| VY-CARD-009 | 4.2% |
-| VY-CARD-003 | 3.9% |
-| VY-LAUND-001 | 3.0% |
-| VY-SOC-004 | 1.1% |
-| VY-AGENT-003 | 0.0% |
+| VY-UPI-008 | 95.2% |
+| VY-IDENT-001 | 79.3% |
+| VY-LAUND-002 | 48.3% |
+| VY-UPI-007 | 40.4% |
+| VY-LAUND-001 | 23.7% |
+| VY-CARD-003 | 15.2% |
+| VY-UPI-002 | 15.0% |
+| VY-SOC-001 | 11.7% |
+| VY-SOC-008 | 9.2% |
+| VY-AGENT-001 | 6.2% |
+| VY-SOC-003 | 3.6% |
+| VY-UPI-005 | 0.6% |
+| VY-CARD-002 | 0.0% |
 | VY-CARD-001 | 0.0% |
-| VY-AGENT-001 | 0.0% |
+| VY-AGENT-003 | 0.0% |
 | VY-CARD-004 | 0.0% |
+| VY-CARD-009 | 0.0% |
+| VY-SOC-004 | 0.0% |
 | VY-UPI-001 | 0.0% |
-| VY-SOC-008 | 0.0% |
-| VY-UPI-005 | 0.0% |
 | VY-UPI-003 | 0.0% |
 
 *Excluded from the mean as statistically meaningless (15 test-event minimum): VY-SOC-002 (n=3).*
