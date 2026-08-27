@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/janus-relief.png" alt="Relief carving of Janus, the two-faced Roman god of gateways" width="220"/>
+
 # Project Janus
 
 **A payment-fraud lab that plays both sides.**
