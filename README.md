@@ -17,7 +17,7 @@ Map how GenAI is changing fraud → simulate it at scale → detect it → let t
 > one at what approaches, one at what departs. **You cannot guard a gate you have only ever
 > stood behind.**
 
-Built for the **Mastercard Innovation Challenge @ GFF 2026 — AI Defense Lab for Payment Security**.
+
 
 ## The thesis
 
